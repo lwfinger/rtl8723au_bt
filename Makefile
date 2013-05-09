@@ -1,4 +1,4 @@
-FW_DIR	:= /lib/firmware/rtl_bt
+FW_DIR	:= /lib/firmware/rtk_bt
 MDL_DIR	:= /lib/modules/$(shell uname -r)
 DRV_DIR	:= $(MDL_DIR)/kernel/drivers/bluetooth
 
