@@ -29,4 +29,4 @@ uninstall:
 	rm -f $(DRV_DIR)/rtk_btusb.ko
 	depmod -a $(MDL_DIR)
 	rm -f $(FW_DIR)/rtk8723a.bin
-	echo "uninstall rtk_btusb success!
+	echo "uninstall rtk_btusb success!"
