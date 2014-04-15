@@ -24,6 +24,7 @@
 #include <linux/module.h>
 #include <linux/usb.h>
 #include <linux/firmware.h>
+#include <linux/version.h>
 
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
@@ -734,8 +735,14 @@ static int btusb_flush(struct hci_dev *hdev)
 	return 0;
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
 static int btusb_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
+#else
+static int btusb_send_frame(struct sk_buff *skb)
+{
+	struct hci_dev *hdev = (struct hci_dev *) skb->dev;
+#endif
 	struct btusb_data *data = hci_get_drvdata(hdev);
 	struct usb_ctrlrequest *dr;
 	struct urb *urb;
