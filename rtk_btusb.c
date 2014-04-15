@@ -606,9 +606,8 @@ static int btusb_flush(struct hci_dev *hdev)
 	return 0;
 }
 
-static int btusb_send_frame(struct sk_buff *skb)
+static int btusb_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
-	struct hci_dev *hdev = (struct hci_dev *) skb->dev;
 	struct btusb_data *data = GET_DRV_DATA(hdev);
 	struct usb_ctrlrequest *dr;
 	struct urb *urb;
@@ -616,6 +615,8 @@ static int btusb_send_frame(struct sk_buff *skb)
 	int err;
 
 	BT_DBG("%s", hdev->name);
+
+	skb->dev = (void *) hdev;
 
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return -EBUSY;
