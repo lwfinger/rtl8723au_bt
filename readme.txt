@@ -1,6 +1,6 @@
 
 In this document, we introduce how to support rtk 8723AE/AU BT driver in Linux system.
-Support kernel version 2.6.32~3.10.0
+Support kernel version 2.6.32~3.13.0
 
 ===========================================================================================================
 

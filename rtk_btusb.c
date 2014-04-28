@@ -624,6 +624,10 @@ static int btusb_send_frame(struct sk_buff *skb)
 
 	BT_DBG("%s", hdev->name);
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
+	skb->dev = (void *) hdev;
+#endif
+
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return -EBUSY;
 
