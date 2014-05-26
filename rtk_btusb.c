@@ -754,6 +754,8 @@ static int btusb_send_frame(struct sk_buff *skb)
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return -EBUSY;
 
+	skb->dev = (void *)hdev;
+
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
 		urb = usb_alloc_urb(0, GFP_ATOMIC);
