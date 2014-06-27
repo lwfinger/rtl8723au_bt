@@ -228,6 +228,8 @@ static struct usb_device_id blacklist_table[] = {
 
           /*Realtek bluetooth usb device*/
       { USB_VENDOR_AND_INTERFACE_INFO(0x0bda, 0xe0, 0x01, 0x01), .driver_info = BTUSB_REALTEK},
+	{ USB_DEVICE(0x13d3, 0x3410), .driver_info = BTUSB_REALTEK },
+
 
 	{ }	/* Terminating entry */
 };
@@ -1460,6 +1462,7 @@ static patch_info patch_table[] = {
     { 0xb72A, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BU
     { 0xb728, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BE for LC
     { 0xb723, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BE
+    { 0x3410, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BE
     
     { 0, 0x1200, "rtl8723a_fw", "rtl8723a_config", NULL, 0 } //Rtl8723AU & Rtl8723AE
 };
