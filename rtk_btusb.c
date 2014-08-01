@@ -749,6 +749,7 @@ static int btusb_send_frame(struct sk_buff *skb)
 	struct usb_ctrlrequest *dr;
 	struct urb *urb;
 	unsigned int pipe;
+	unsigned char *aligned_data;
 	int err;
 
 	BT_DBG("%s", hdev->name);
@@ -758,16 +759,25 @@ static int btusb_send_frame(struct sk_buff *skb)
 
 	skb->dev = (void *)hdev;
 
+	/* Some platforms such as ARM require dword alignment for the skb->data
+	 * To ensure that, allocate a buffer and copy the data
+	 */
+	aligned_data = kmalloc(max_t(unsigned int, 256, skb->len), GFP_ATOMIC);
+	if (!aligned_data)
+		return -ENOMEM;
+	memcpy(aligned_data, skb->data, skb->len);
+
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
 		urb = usb_alloc_urb(0, GFP_ATOMIC);
-		if (!urb)
-			return -ENOMEM;
-
+		if (!urb) {
+			err = -ENOMEM;
+			goto exit;
+		}
 		dr = kmalloc(sizeof(*dr), GFP_ATOMIC);
 		if (!dr) {
-			usb_free_urb(urb);
-			return -ENOMEM;
+			err = -ENOMEM;
+			goto done;
 		}
 
 		dr->bRequestType = data->cmdreq_type;
@@ -779,42 +789,48 @@ static int btusb_send_frame(struct sk_buff *skb)
 		pipe = usb_sndctrlpipe(data->udev, 0x00);
 
 		usb_fill_control_urb(urb, data->udev, pipe, (void *) dr,
-				skb->data, skb->len, btusb_tx_complete, skb);
+				     aligned_data, skb->len, btusb_tx_complete, skb);
 
 		hdev->stat.cmd_tx++;
 		break;
 
 	case HCI_ACLDATA_PKT:
-		if (!data->bulk_tx_ep)
-			return -ENODEV;
+		if (!data->bulk_tx_ep) {
+			err = -ENODEV;
+			goto exit;
+		}
 
 		urb = usb_alloc_urb(0, GFP_ATOMIC);
-		if (!urb)
-			return -ENOMEM;
-
+		if (!urb) {
+			err = -ENOMEM;
+			goto exit;
+		}
 		pipe = usb_sndbulkpipe(data->udev,
 					data->bulk_tx_ep->bEndpointAddress);
 
 		usb_fill_bulk_urb(urb, data->udev, pipe,
-				skb->data, skb->len, btusb_tx_complete, skb);
+				  aligned_data, skb->len, btusb_tx_complete, skb);
 
 		hdev->stat.acl_tx++;
 		break;
 
 	case HCI_SCODATA_PKT:
-		if (!data->isoc_tx_ep || hdev->conn_hash.sco_num < 1)
-			return -ENODEV;
-
+		if (!data->isoc_tx_ep || hdev->conn_hash.sco_num < 1) {
+			err = -ENODEV;
+			goto exit;
+		}
 		urb = usb_alloc_urb(BTUSB_MAX_ISOC_FRAMES, GFP_ATOMIC);
-		if (!urb)
-			return -ENOMEM;
+		if (!urb) {
+			err = -ENOMEM;
+			goto exit;
+		}
 
 		pipe = usb_sndisocpipe(data->udev,
 					data->isoc_tx_ep->bEndpointAddress);
 
 		usb_fill_int_urb(urb, data->udev, pipe,
-				skb->data, skb->len, btusb_isoc_tx_complete,
-				skb, data->isoc_tx_ep->bInterval);
+				 aligned_data, skb->len, btusb_isoc_tx_complete,
+				 skb, data->isoc_tx_ep->bInterval);
 
 		urb->transfer_flags  = URB_ISO_ASAP;
 
@@ -825,7 +841,8 @@ static int btusb_send_frame(struct sk_buff *skb)
 		goto skip_waking;
 
 	default:
-		return -EILSEQ;
+		err = -EILSEQ;
+		goto exit;
 	}
 
 	err = inc_tx(data);
@@ -852,6 +869,8 @@ skip_waking:
 
 done:
 	usb_free_urb(urb);
+exit:
+	kfree(aligned_data);
 	return err;
 }
 
@@ -1448,23 +1467,23 @@ static int load_firmware(struct hci_dev *hdev, uint8_t** buff);
 static int check_fw_version(struct hci_dev* hdev);
 
 static patch_info patch_table[] = {
-    { 0xA761, 0x8761, "rtl8761au_fw", "rtl8761a_config", NULL, 0 }, //Rtl8761AU only
-    { 0x818B, 0x8761, "rtl8761aw8192eu_fw", "rtl8761a_config", NULL, 0 }, //Rtl8761Aw + 8192EU
-    { 0x8760, 0x8761, "rtl8761au8192ee_fw", "rtl8761a_config", NULL, 0 }, //Rtl8761AU + 8192EE
-    { 0xB761, 0x8761, "rtl8761au8192ee_fw", "rtl8761a_config", NULL, 0 }, //Rtl8761AU + 8192EE
-    { 0x8761, 0x8761, "rtl8761au8192ee_fw", "rtl8761a_config", NULL, 0 }, //Rtl8761AU + 8192EE for LI
-    { 0x8A60, 0x8761, "rtl8761au8812ae_fw", "rtl8761a_config", NULL, 0 }, //Rtl8761AU + 8812AE
+    { 0xA761, 0x8761, "rtl8761au_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU only
+    { 0x818B, 0x8761, "rtl8761aw8192eu_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761Aw + 8192EU
+    { 0x8760, 0x8761, "rtl8761au8192ee_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8192EE
+    { 0xB761, 0x8761, "rtl8761au8192ee_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8192EE
+    { 0x8761, 0x8761, "rtl8761au8192ee_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8192EE for LI
+    { 0x8A60, 0x8761, "rtl8761au8812ae_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8812AE
     
-    { 0x8821, 0x8821, "rtl8821a_fw", "rtl8821a_config", NULL, 0 },  //Rtl8821AE
-    { 0x0821, 0x8821, "rtl8821a_fw", "rtl8821a_config", NULL, 0 },  //Rtl8821AU
+    { 0x8821, 0x8821, "rtl8821a_fw.bin", "rtl8821a_config.bin", NULL, 0 },  //Rtl8821AE
+    { 0x0821, 0x8821, "rtl8821a_fw.bin", "rtl8821a_config.bin", NULL, 0 },  //Rtl8821AU
     
-    { 0xb720, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BU
-    { 0xb72A, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BU
-    { 0xb728, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BE for LC
-    { 0xb723, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BE
-    { 0x3410, 0x8723, "rtl8723b_fw", "rtl8723b_config", NULL, 0 },  //Rtl8723BE
+    { 0xb720, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BU
+    { 0xb72A, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BU
+    { 0xb728, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE for LC
+    { 0xb723, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE
+    { 0x3410, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE
     
-    { 0, 0x1200, "rtl8723a_fw", "rtl8723a_config", NULL, 0 } //Rtl8723AU & Rtl8723AE
+    { 0, 0x1200, "rtl8723a_fw.bin", "rtl8723a_config.bin", NULL, 0 } //Rtl8723AU & Rtl8723AE
 };
 
 patch_info* get_patch_entry(struct usb_device* udev)
