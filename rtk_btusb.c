@@ -1433,7 +1433,7 @@ struct rtk_epatch_entry{
 } __attribute__ ((packed));
 
 struct rtk_epatch{
-    	uint8_t signature[8];
+	uint8_t signature[8];
 	uint32_t fm_version;
 	uint16_t number_of_total_patch;
 	struct rtk_epatch_entry entry[0];
@@ -1448,9 +1448,9 @@ struct rtk_extension_entry{
 
 #define HCI_VENDOR_READ_RTK_ROM_VERISION 0xfc6d
 #define ROM_LMP_8723a               0x1200
-#define ROM_LMP_8723b               0x8723       
+#define ROM_LMP_8723b               0x8723
 #define ROM_LMP_8821a               0X8821
-#define ROM_LMP_8761a               0X8761 
+#define ROM_LMP_8761a               0X8761
 const uint8_t Extension_Section_SIGNATURE[4]={0x51,0x04,0xFD,0x77};
 const uint8_t  RTK_EPATCH_SIGNATURE[8]={0x52,0x65,0x61,0x6C,0x74,0x65,0x63,
 0x68};
@@ -1473,16 +1473,16 @@ static patch_info patch_table[] = {
     { 0xB761, 0x8761, "rtl8761au8192ee_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8192EE
     { 0x8761, 0x8761, "rtl8761au8192ee_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8192EE for LI
     { 0x8A60, 0x8761, "rtl8761au8812ae_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8812AE
-    
+
     { 0x8821, 0x8821, "rtl8821a_fw.bin", "rtl8821a_config.bin", NULL, 0 },  //Rtl8821AE
     { 0x0821, 0x8821, "rtl8821a_fw.bin", "rtl8821a_config.bin", NULL, 0 },  //Rtl8821AU
-    
+
     { 0xb720, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BU
     { 0xb72A, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BU
     { 0xb728, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE for LC
     { 0xb723, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE
     { 0x3410, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE
-    
+
     { 0, 0x1200, "rtl8723a_fw.bin", "rtl8723a_config.bin", NULL, 0 } //Rtl8723AU & Rtl8723AE
 };
 
@@ -1511,7 +1511,7 @@ uint8_t rtk_get_eversion(struct hci_dev* hdev)
 	BT_DBG("rtk_get_eversion, global_eversion=0x%x \n",global_eversion);
 	if(global_eversion != 0xff)
 		return global_eversion;
-	
+
 	if(hdev == NULL)
 		return global_eversion;
 
@@ -1519,12 +1519,12 @@ uint8_t rtk_get_eversion(struct hci_dev* hdev)
 
 	if (IS_ERR(skb)) {
 		ret_val = 0;
-		global_eversion = 0;	
+		global_eversion = 0;
 		RTKBT_DBG("%s rtk_get_eversion failed (%ld)",
-		       hdev->name, PTR_ERR(skb)); 
-		return 0;		
+		       hdev->name, PTR_ERR(skb));
+		return 0;
 	}
-	
+
 	if (skb->len != sizeof(*eversion)) {
 		RTKBT_DBG("%s RTK version event length mismatch", hdev->name);
 		kfree_skb(skb);
@@ -1538,7 +1538,7 @@ uint8_t rtk_get_eversion(struct hci_dev* hdev)
 		ret_val = 0;
 		global_eversion = 0;
 	}
-	else 
+	else
 	{
 		ret_val =  eversion->version;
 		global_eversion = eversion->version;
@@ -1558,7 +1558,7 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 
 	int config_len = 0 ,buf_len =-1;
 	uint8_t* buf = *buff, *config_file_buf = NULL;
-   	uint8_t* epatch_buf = NULL;
+	uint8_t* epatch_buf = NULL;
 
 	struct rtk_epatch* epatch_info = NULL;
         uint8_t need_download_fw = 1;
@@ -1566,17 +1566,17 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 	struct rtk_epatch_entry current_entry = {0};
 	uint16_t lmp_version ;
 	uint8_t gEVersion= 0;
-	
+
 	struct btusb_data *data = dev_get_drvdata(&hdev->dev);
 	struct usb_device * udev = interface_to_usbdev(data->intf);
-	patch_entry = get_patch_entry(udev);	
+	patch_entry = get_patch_entry(udev);
 	lmp_version = patch_entry->lmp_sub;
 
 	RTKBT_ERR("load_firmware start ,lmp_version = 0x%04x", lmp_version);
-	
+
 	fw_name = patch_entry->config_name;
 	ret_val = request_firmware(&fw, fw_name, &udev->dev);
-	if (ret_val < 0)  
+	if (ret_val < 0)
 		config_len = 0;
 	else
 	{
@@ -1585,7 +1585,7 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 			memcpy(config_file_buf, fw->data, fw->size);
 		config_len = fw->size;
 	}
-	
+
 	release_firmware(fw);
 	fw_name = patch_entry->patch_name;
 	ret_val = request_firmware(&fw, fw_name, &udev->dev);
@@ -1597,8 +1597,8 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 		goto fw_fail;
 	}
 	epatch_buf = kzalloc(fw->size, GFP_KERNEL);
-	if (NULL == epatch_buf) goto alloc_fail;	
-	memcpy(epatch_buf, fw->data, fw->size);	
+	if (NULL == epatch_buf) goto alloc_fail;
+	memcpy(epatch_buf, fw->data, fw->size);
 	buf_len = fw->size + config_len;
 
 	if(lmp_version == ROM_LMP_8723a)
@@ -1624,7 +1624,7 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 				if (config_len)
 				{
 					memcpy(&buf[buf_len - config_len], config_file_buf, config_len);
-				}	
+				}
 			}
 		}
 	}
@@ -1635,7 +1635,7 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 		gEVersion = global_eversion;
 		RTKBT_DBG("gEVersion=%d", gEVersion);
 
-		//check Extension Section Field 
+		//check Extension Section Field
 		if(memcmp(epatch_buf + buf_len-config_len-4 ,Extension_Section_SIGNATURE,4) != 0)
 		{
 			RTKBT_ERR("Check Extension_Section_SIGNATURE error! do not download fw");
@@ -1643,7 +1643,7 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 		}
 		else
 		{
-			uint8_t *temp;  
+			uint8_t *temp;
 			temp = epatch_buf+buf_len-config_len-5;
 			do{
 				if(*temp == 0x00)
@@ -1654,7 +1654,7 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 					{
 						memcpy(patch_lmp.data,temp-2,patch_lmp.length);
 					}
-					RTKBT_DBG("opcode = 0x%x",patch_lmp.opcode); 
+					RTKBT_DBG("opcode = 0x%x",patch_lmp.opcode);
 					RTKBT_DBG("length = 0x%x",patch_lmp.length);
 					RTKBT_DBG("data = 0x%x",*(patch_lmp.data));
 					break;
@@ -1670,7 +1670,7 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 			else
 			{
 				RTKBT_DBG("lmp_version is %x, project_id is %x, match!",lmp_version, project_id[*(patch_lmp.data)]);
-		
+
 				if(memcmp(epatch_buf, RTK_EPATCH_SIGNATURE, 8) != 0)
 				{
 					RTKBT_DBG("Check signature error!");
@@ -1680,9 +1680,9 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 				{
 					int i = 0;
 					epatch_info = (struct rtk_epatch*)epatch_buf;
-					RTKBT_DBG("fm_version = 0x%x",epatch_info->fm_version); 
+					RTKBT_DBG("fm_version = 0x%x",epatch_info->fm_version);
 					RTKBT_DBG("number_of_total_patch = %d",epatch_info->number_of_total_patch);
-			
+
 					//get right epatch entry
 					for(i=0; i<epatch_info->number_of_total_patch; i++)
 					{
@@ -1694,14 +1694,14 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 							break;
 						}
 					}
-					RTKBT_DBG("chipID = %d",current_entry.chipID); 
-					RTKBT_DBG("patch_length = 0x%x",current_entry.patch_length); 
-					RTKBT_DBG("start_offset = 0x%x",current_entry.start_offset); 
-									
+					RTKBT_DBG("chipID = %d",current_entry.chipID);
+					RTKBT_DBG("patch_length = 0x%x",current_entry.patch_length);
+					RTKBT_DBG("start_offset = 0x%x",current_entry.start_offset);
+
 					//get right eversion patch: buf, buf_len
 					buf_len = current_entry.patch_length + config_len;
 					RTKBT_DBG("buf_len = 0x%x",buf_len);
-									
+
 					if (!(buf = kzalloc(buf_len, GFP_KERNEL))) {
 						RTKBT_ERR("Can't alloc memory for multi fw&config");
 						buf_len = -1;
@@ -1717,19 +1717,19 @@ int load_firmware(struct hci_dev *hdev, uint8_t** buff)
 					if (config_len)
 					{
 						memcpy(&buf[buf_len - config_len], config_file_buf, config_len);
-					}	
-				}															
+					}
+				}
 			}
-		}					
-	}					
-                
+		}
+	}
+
        if (config_file_buf)
-        	 kfree(config_file_buf);
-      
+		 kfree(config_file_buf);
+
 	RTKBT_ERR("Fw:%s exists, config file:%s exists", (buf_len > 0) ? "":"not", (config_len>0)?"":"not");
 	if (buf && (buf_len > 0) && (need_download_fw))
 	{
-		fw_len = buf_len;	
+		fw_len = buf_len;
 		*buff = buf;
 	}
 
@@ -1742,7 +1742,7 @@ fw_fail:
 }
 
 int check_fw_version(struct hci_dev* hdev)
-{	
+{
 	struct hci_rp_read_local_version *read_ver_rsp;
 	struct sk_buff * skb;
        int ret_val;
@@ -1786,7 +1786,7 @@ int check_fw_version(struct hci_dev* hdev)
 		return 1;
 	}
 
-	ret_val = 0;	
+	ret_val = 0;
 
 	return ret_val;
 }
@@ -1802,10 +1802,10 @@ int btusb_setup_rtk(struct hci_dev *hdev)
 	int	i;
 
 	struct sk_buff *skb;
- 	struct btusb_data *data = dev_get_drvdata(&hdev->dev);
+	struct btusb_data *data = dev_get_drvdata(&hdev->dev);
 	struct usb_device * udev = interface_to_usbdev(data->intf);
 	patch_entry = get_patch_entry(udev);
-		
+
 	BT_DBG("btusb_setup_rtk\n");
 
 	ret_val = check_fw_version(hdev);
@@ -1813,7 +1813,7 @@ int btusb_setup_rtk(struct hci_dev *hdev)
 		RTKBT_DBG("check_fw_version 1 error");
 		return 0;
 	}
-	
+
 
 	ret_val = rtk_get_eversion(hdev);
 	if(ret_val < 0) {
@@ -1831,7 +1831,7 @@ int btusb_setup_rtk(struct hci_dev *hdev)
 	frag_len = PATCH_SEG_MAX;
 	cmd_para = kzalloc(sizeof(download_cp), GFP_KERNEL);
 	pcur = patch_entry->fw_cache;
-	
+
 	for (i = 0; i < frag_num; i++)
 	{
 		RTKBT_DBG("download fw (%d)/(%d)", (i), frag_num);
@@ -1843,7 +1843,7 @@ int btusb_setup_rtk(struct hci_dev *hdev)
 			pkt_len -= (PATCH_SEG_MAX - frag_len);
 		}
 		memcpy(cmd_para->data, pcur, frag_len);
-		
+
 		skb = __hci_cmd_sync(hdev, le16_to_cpu(DOWNLOAD_OPCODE), sizeof(uint8_t) + frag_len,
 				cmd_para, HCI_INIT_TIMEOUT);
 		if (IS_ERR(skb)) {
@@ -1864,11 +1864,11 @@ int btusb_setup_rtk(struct hci_dev *hdev)
 		}
 
 		kfree_skb(skb);
-	
+
 		pcur += PATCH_SEG_MAX;
 	}
 
-	
+
 	ret_val = check_fw_version(hdev);
 	if (ret_val <= 0)
 	{
