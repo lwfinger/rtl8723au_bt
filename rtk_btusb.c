@@ -620,6 +620,7 @@ static int btusb_send_frame(struct sk_buff *skb)
 	struct usb_ctrlrequest *dr;
 	struct urb *urb;
 	unsigned int pipe;
+	unsigned char *aligned_data;
 	int err;
 
 	BT_DBG("%s", hdev->name);
@@ -631,16 +632,25 @@ static int btusb_send_frame(struct sk_buff *skb)
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return -EBUSY;
 
+	/* Some platforms such as ARM require dword alignment for the skb->data
+	 * To ensure that, allocate a buffer and copy the data
+	 */
+	aligned_data = kmalloc(max_t(unsigned int, 256, skb->len), GFP_ATOMIC);
+	if (!aligned_data)
+		return -ENOMEM;
+	memcpy(aligned_data, skb->data, skb->len);
+
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
 		urb = usb_alloc_urb(0, GFP_ATOMIC);
-		if (!urb)
-			return -ENOMEM;
-
+		if (!urb) {
+			err = -ENOMEM;
+			goto exit;
+		}
 		dr = kmalloc(sizeof(*dr), GFP_ATOMIC);
 		if (!dr) {
-			usb_free_urb(urb);
-			return -ENOMEM;
+			err = -ENOMEM;
+			goto done;
 		}
 
 		dr->bRequestType = data->cmdreq_type;
@@ -652,42 +662,48 @@ static int btusb_send_frame(struct sk_buff *skb)
 		pipe = usb_sndctrlpipe(data->udev, 0x00);
 
 		usb_fill_control_urb(urb, data->udev, pipe, (void *) dr,
-				skb->data, skb->len, btusb_tx_complete, skb);
+				     aligned_data, skb->len, btusb_tx_complete, skb);
 
 		hdev->stat.cmd_tx++;
 		break;
 
 	case HCI_ACLDATA_PKT:
-		if (!data->bulk_tx_ep)
-			return -ENODEV;
+		if (!data->bulk_tx_ep) {
+			err = -ENODEV;
+			goto exit;
+		}
 
 		urb = usb_alloc_urb(0, GFP_ATOMIC);
-		if (!urb)
-			return -ENOMEM;
-
+		if (!urb) {
+			err = -ENOMEM;
+			goto exit;
+		}
 		pipe = usb_sndbulkpipe(data->udev,
 					data->bulk_tx_ep->bEndpointAddress);
 
 		usb_fill_bulk_urb(urb, data->udev, pipe,
-				skb->data, skb->len, btusb_tx_complete, skb);
+				  aligned_data, skb->len, btusb_tx_complete, skb);
 
 		hdev->stat.acl_tx++;
 		break;
 
 	case HCI_SCODATA_PKT:
-		if (!data->isoc_tx_ep || hdev->conn_hash.sco_num < 1)
-			return -ENODEV;
-
+		if (!data->isoc_tx_ep || hdev->conn_hash.sco_num < 1) {
+			err = -ENODEV;
+			goto exit;
+		}
 		urb = usb_alloc_urb(BTUSB_MAX_ISOC_FRAMES, GFP_ATOMIC);
-		if (!urb)
-			return -ENOMEM;
+		if (!urb) {
+			err = -ENOMEM;
+			goto exit;
+		}
 
 		pipe = usb_sndisocpipe(data->udev,
 					data->isoc_tx_ep->bEndpointAddress);
 
 		usb_fill_int_urb(urb, data->udev, pipe,
-				skb->data, skb->len, btusb_isoc_tx_complete,
-				skb, data->isoc_tx_ep->bInterval);
+				 aligned_data, skb->len, btusb_isoc_tx_complete,
+				 skb, data->isoc_tx_ep->bInterval);
 
 		urb->transfer_flags  = URB_ISO_ASAP;
 
@@ -698,7 +714,8 @@ static int btusb_send_frame(struct sk_buff *skb)
 		goto skip_waking;
 
 	default:
-		return -EILSEQ;
+		err = -EILSEQ;
+		goto exit;
 	}
 
 	err = inc_tx(data);
@@ -722,6 +739,8 @@ skip_waking:
 	usb_free_urb(urb);
 
 done:
+exit:
+	kfree(aligned_data);
 	return err;
 }
 
