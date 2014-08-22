@@ -21,9 +21,10 @@ endif
 install:
 	mkdir -p $(FW_DIR)
 	cp -f rlt8723a_chip_b_cut_bt40_fw_asic_rom_patch-svn8511-0x0020342E-20121105-LINUX_USB.bin $(FW_DIR)/rtk8723a.bin
+	cp -f rtl8723a_config.bin $(FW_DIR)/.
 	cp -f rtk_btusb.ko $(DRV_DIR)/rtk_btusb.ko
 	depmod -a $(MDL_DIR)
-	echo "install rtk_btusb success!"
+	@echo "install rtk_btusb success!"
 
 uninstall:
 	rm -f $(DRV_DIR)/rtk_btusb.ko
