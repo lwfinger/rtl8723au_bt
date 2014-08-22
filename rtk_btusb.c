@@ -1473,16 +1473,16 @@ static patch_info patch_table[] = {
     { 0xB761, 0x8761, "rtl8761au8192ee_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8192EE
     { 0x8761, 0x8761, "rtl8761au8192ee_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8192EE for LI
     { 0x8A60, 0x8761, "rtl8761au8812ae_fw.bin", "rtl8761a_config.bin", NULL, 0 }, //Rtl8761AU + 8812AE
-
+    
     { 0x8821, 0x8821, "rtl8821a_fw.bin", "rtl8821a_config.bin", NULL, 0 },  //Rtl8821AE
     { 0x0821, 0x8821, "rtl8821a_fw.bin", "rtl8821a_config.bin", NULL, 0 },  //Rtl8821AU
-
+    
     { 0xb720, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BU
     { 0xb72A, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BU
     { 0xb728, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE for LC
     { 0xb723, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE
     { 0x3410, 0x8723, "rtl8723b_fw.bin", "rtl8723b_config.bin", NULL, 0 },  //Rtl8723BE
-
+    
     { 0, 0x1200, "rtl8723a_fw.bin", "rtl8723a_config.bin", NULL, 0 } //Rtl8723AU & Rtl8723AE
 };
 
