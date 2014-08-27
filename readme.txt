@@ -1,15 +1,18 @@
 
 In this document, we introduce how to support rtk 8723AE/AU BT driver in Linux system.
-Support kernel version 2.6.32~3.10.0
 
 ===========================================================================================================
 
-1. Install
+1. To Install the driver:
 
 (1)	Change to the directory containing the source files.
 
 	make
 	sudo make install
+
+(2)	Remove and blacklist btusb module using
+	sudo modprobe -rv btusb
+	su -c "echo \"blacklist btusb\" > /etc/modprobe.d/50-btusb.conf"
 
 (2)	Insert RTK8723AE/AU dongle
 
@@ -17,13 +20,14 @@ Support kernel version 2.6.32~3.10.0
 
 ===========================================================================================================
 
-2. Uninstall
+2. To Uninstall the driver when you no longer need it
 
 (1)	unplug RTK8723AE/AU dongle 
 
 (2)	Uninstall	
 
 	sudo make uninstall
+	sudo rm /etc/modprobe.d/50-btusb.conf
  
 ===========================================================================================================
 
