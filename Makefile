@@ -4,7 +4,7 @@ DRV_DIR	:= $(MDL_DIR)/kernel/drivers/bluetooth
 
 ifneq ($(KERNELRELEASE),)
 
-	obj-m := rtk_btusb.o
+	obj-m := btusb.o
 
 else
 	PWD := $(shell pwd)
@@ -19,16 +19,16 @@ clean:
 endif
 
 install:
-	mkdir -p $(FW_DIR)
-	cp -f rtl8723a_fw.bin $(FW_DIR)/.
-	cp -f rtl8723b_fw.bin $(FW_DIR)/.
-	cp -f rtl8723a_config.bin $(FW_DIR)/.
-	cp -f rtl8723b_config.bin $(FW_DIR)/.
-	cp -f rtk_btusb.ko $(DRV_DIR)/rtk_btusb.ko
+	@mkdir -p $(FW_DIR)
+	@cp -f rtl8723a_fw.bin $(FW_DIR)/.
+	@cp -f rtl8723b_fw.bin $(FW_DIR)/.
+	@cp -f rtl8821a_fw.bin $(FW_DIR)/.
+	@cp -f rtl8761a_fw.bin $(FW_DIR)/.
+	@cp -f btusb.ko $(DRV_DIR)/btusb.ko
 	depmod -a $(MDL_DIR)
-	echo "install rtk_btusb success!"
+	@echo "install rtk_btusb success!"
 
 uninstall:
-	rm -f $(DRV_DIR)/rtk_btusb.ko
+	rm -f $(DRV_DIR)/btusb.ko
 	depmod -a $(MDL_DIR)
 	echo "uninstall rtk_btusb success!"
