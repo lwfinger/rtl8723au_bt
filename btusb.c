@@ -469,10 +469,10 @@ static void btusb_bulk_complete(struct urb *urb)
 						urb->actual_length) < 0) {
 			BT_ERR("%s corrupted ACL packet", hdev->name);
 			hdev->stat.err_rx++;
-		} else if (urb->status == -ENOENT) {
-			/* Avoid suspend failed when usb_kill_urb */
-			return;
 		}
+	} else if (urb->status == -ENOENT) {
+		/* Avoid suspend failed when usb_kill_urb */
+		return;
 	}
 
 	if (!test_bit(BTUSB_BULK_RUNNING, &data->flags))
