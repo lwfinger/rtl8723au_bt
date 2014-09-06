@@ -30,9 +30,9 @@ install:
 	@cp -f rtl8761a_fw.bin $(FW_DIR)/rtl8761a_fw
 	@cp -f btusb.ko $(DRV_DIR)/btusb.ko
 	depmod -a $(MDL_DIR)
-	@echo "install rtk_btusb success!"
+	@echo "installed revised btusb"
 
 uninstall:
 	rm -f $(DRV_DIR)/btusb.ko
 	depmod -a $(MDL_DIR)
-	echo "uninstall rtk_btusb success!"
+	echo "uninstalled revised btusb"
