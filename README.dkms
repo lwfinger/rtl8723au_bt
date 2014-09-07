@@ -1,0 +1,14 @@
+
+To get DKMS to work:
+
+- Install dkms
+- Copy this source to the directory /usr/src/rtl8723au_bt-0.1/
+- Run (as root):
+
+    $ dkms add -m rtl8723au_bt -v 0.1
+
+- Test a build:
+
+    $ dkms build -m rtl8723au_bt -v 0.1
+
+From now on this drive should be available for any new kernels.
