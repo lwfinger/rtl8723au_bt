@@ -56,17 +56,19 @@ static struct usb_driver btusb_driver;
 #ifdef BT_DBG
 #undef BT_DBG
 #endif
-#define BT_DBG(fmt, arg...) printk ( KERN_INFO "test_btusb: %s " fmt "\n" , __func__ , ## arg)
+#define BT_DBG(fmt, arg...)			\
+	pr_info("test_btusb: %s " fmt "\n" , __func__ , ## arg)
 
 #ifdef BT_INFO
 #undef BT_INFO
 #endif
-#define BT_INFO(fmt, arg...) printk ( KERN_INFO "test_btusb: %s " fmt "\n" , __func__ , ## arg)
-
+#define BT_INFO(fmt, arg...)			\
+	pr_info("test_btusb: %s " fmt "\n" , __func__ , ## arg)
 #ifdef BT_ERR
 #undef BT_ERR
 #endif
-#define BT_ERR(fmt, arg...) printk ( KERN_INFO "test_btusb: %s " fmt "\n" , __func__ , ## arg)
+#define BT_ERR(fmt, arg...)			\
+	pr_err("test_btusb: %s " fmt "\n" , __func__ , ## arg)
 
 static const struct usb_device_id btusb_table[] = {
 	/* Generic Bluetooth USB device */
@@ -81,25 +83,25 @@ static const struct usb_device_id btusb_table[] = {
 	/* Broadcom SoftSailing reporting vendor specific */
 	{ USB_DEVICE(0x0a5c, 0x21e1) },
 
-	/* Apple MacBookPro 7,1 */
+	/* Apple MacBookPro 7, 1 */
 	{ USB_DEVICE(0x05ac, 0x8213) },
 
-	/* Apple iMac11,1 */
+	/* Apple iMac11, 1 */
 	{ USB_DEVICE(0x05ac, 0x8215) },
 
-	/* Apple MacBookPro6,2 */
+	/* Apple MacBookPro6, 2 */
 	{ USB_DEVICE(0x05ac, 0x8218) },
 
-	/* Apple MacBookAir3,1, MacBookAir3,2 */
+	/* Apple MacBookAir3, 1, MacBookAir3, 2 */
 	{ USB_DEVICE(0x05ac, 0x821b) },
 
-	/* Apple MacBookAir4,1 */
+	/* Apple MacBookAir4, 1 */
 	{ USB_DEVICE(0x05ac, 0x821f) },
 
-	/* Apple MacBookPro8,2 */
+	/* Apple MacBookPro8, 2 */
 	{ USB_DEVICE(0x05ac, 0x821a) },
 
-	/* Apple MacMini5,1 */
+	/* Apple MacMini5, 1 */
 	{ USB_DEVICE(0x05ac, 0x8281) },
 
 	/* AVM BlueFRITZ! USB v2.0 */
@@ -140,8 +142,6 @@ static const struct usb_device_id btusb_table[] = {
 	{ USB_VENDOR_AND_INTERFACE_INFO(0x0bd5, 0xe0, 0x01, 0x01) },
 	{ USB_VENDOR_AND_INTERFACE_INFO(0x13d3, 0xe0, 0x01, 0x01) },
 	{ USB_VENDOR_AND_INTERFACE_INFO(0x0489, 0xe0, 0x01, 0x01) },
-
-
 	{ }	/* Terminating entry */
 };
 
@@ -254,7 +254,7 @@ static const struct usb_device_id blacklist_table[] = {
 	/* Realtek Bluetooth device */
 	/*8723AE*/
 	{ USB_DEVICE(0x0bda, 0x0723), .driver_info = BTUSB_RTL },
-	{ USB_DEVICE(0x0bda, 0xa723), .driver_info = BTUSB_IGNORE },//BTUSB_RTL },
+	{ USB_DEVICE(0x0bda, 0xa723), .driver_info = BTUSB_IGNORE },
 	{ USB_DEVICE(0x0bda, 0x8723), .driver_info = BTUSB_RTL },
 	{ USB_DEVICE(0x0930, 0x021d), .driver_info = BTUSB_RTL },
 	{ USB_DEVICE(0x13d3, 0x3394), .driver_info = BTUSB_RTL },
@@ -364,9 +364,6 @@ static void btusb_intr_complete(struct urb *urb)
 	struct btusb_data *data = hci_get_drvdata(hdev);
 	int err;
 
-//	BT_DBG("%s urb %p status %d count %d", hdev->name,
-//					urb, urb->status, urb->actual_length);
-
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return;
 
@@ -409,8 +406,7 @@ static int btusb_submit_intr_urb(struct hci_dev *hdev, gfp_t mem_flags)
 	unsigned int pipe;
 	int err, size;
 
-	//BT_DBG("%s", hdev->name);
-	BT_DBG("%s",__func__);
+	BT_DBG("%s", __func__);
 	if (!data->intr_ep)
 		return -ENODEV;
 
@@ -455,8 +451,6 @@ static void btusb_bulk_complete(struct urb *urb)
 	struct btusb_data *data = hci_get_drvdata(hdev);
 	int err;
 
-//	BT_DBG("%s urb %p status %d count %d", hdev->name,
-//					urb, urb->status, urb->actual_length);
 
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return;
@@ -500,8 +494,7 @@ static int btusb_submit_bulk_urb(struct hci_dev *hdev, gfp_t mem_flags)
 	unsigned int pipe;
 	int err, size = HCI_MAX_FRAME_SIZE;
 
-	//BT_DBG("%s", hdev->name);
-	BT_DBG("%s",__func__);
+	BT_DBG("%s", __func__);
 	if (!data->bulk_rx_ep)
 		return -ENODEV;
 
@@ -543,9 +536,6 @@ static void btusb_isoc_complete(struct urb *urb)
 	struct hci_dev *hdev = urb->context;
 	struct btusb_data *data = hci_get_drvdata(hdev);
 	int i, err;
-
-//	BT_DBG("%s urb %p status %d count %d", hdev->name,
-//					urb, urb->status, urb->actual_length);
 
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return;
@@ -617,8 +607,6 @@ static int btusb_submit_isoc_urb(struct hci_dev *hdev, gfp_t mem_flags)
 	unsigned int pipe;
 	int err, size;
 
-	//BT_DBG("%s", hdev->name);
-	//BT_DBG("%s",__func__);
 	if (!data->isoc_rx_ep)
 		return -ENODEV;
 
@@ -666,10 +654,6 @@ static void btusb_tx_complete(struct urb *urb)
 	struct hci_dev *hdev = (struct hci_dev *) skb->dev;
 	struct btusb_data *data = hci_get_drvdata(hdev);
 
-	//BT_DBG("%s",__func__);
-	//BT_DBG("%s urb %p status %d count %d", hdev->name,
-	//				urb, urb->status, urb->actual_length);
-
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		goto done;
 
@@ -715,8 +699,7 @@ static int btusb_open(struct hci_dev *hdev)
 	struct btusb_data *data = hci_get_drvdata(hdev);
 	int err;
 
-	//BT_DBG("%s", hdev->name);
-	BT_DBG(" %s start :hdev->flags = 0x%lx",__func__,hdev->flags);
+	BT_DBG(" %s start :hdev->flags = 0x%lx", __func__, hdev->flags);
 
 	err = usb_autopm_get_interface(data->intf);
 	if (err < 0)
@@ -727,7 +710,7 @@ static int btusb_open(struct hci_dev *hdev)
 	if (test_and_set_bit(HCI_RUNNING, &hdev->flags))
 		goto done;
 
-	BT_DBG(" %s test_and_set :hdev->flags = 0x%x \n",__func__, (int)hdev->flags);
+	BT_DBG(" %s test_and_set :hdev->flags = 0x%x \n", __func__, (int)hdev->flags);
 
 	if (test_and_set_bit(BTUSB_INTR_RUNNING, &data->flags))
 		goto done;
@@ -746,12 +729,12 @@ static int btusb_open(struct hci_dev *hdev)
 	btusb_submit_bulk_urb(hdev, GFP_KERNEL);
 
 done:
-	BT_DBG(" %s done :hdev->flags = 0x%x \n",__func__, (int)hdev->flags);
+	BT_DBG(" %s done :hdev->flags = 0x%x \n", __func__, (int)hdev->flags);
 	usb_autopm_put_interface(data->intf);
 	return 0;
 
 failed:
-	BT_DBG("failed %s",__func__);
+	BT_DBG("failed %s", __func__);
 	clear_bit(BTUSB_INTR_RUNNING, &data->flags);
 	clear_bit(HCI_RUNNING, &hdev->flags);
 	usb_autopm_put_interface(data->intf);
@@ -807,9 +790,7 @@ static int btusb_flush(struct hci_dev *hdev)
 }
 
 static int btusb_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
-//static int btusb_send_frame(struct sk_buff *skb)
 {
-//	struct hci_dev *hdev = (struct hci_dev *) skb->dev;
 	struct btusb_data *data = hci_get_drvdata(hdev);
 	struct usb_ctrlrequest *dr;
 	struct urb *urb;
@@ -817,15 +798,10 @@ static int btusb_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 	int err;
 	u16 *opcode;
 
-	//BT_DBG("%s", hdev->name);
-	//BT_DBG("%s hdev->flags=0x%x",__func__,hdev->flags);
-
 	if (!test_bit(HCI_RUNNING, &hdev->flags))
 		return -EBUSY;
 
 	skb->dev = (void *) hdev;
-
-	//BT_DBG("%s bt_cb(skb)->pkt_type=%d  ",__func__,bt_cb(skb)->pkt_type);
 
 	switch (bt_cb(skb)->pkt_type) {
 	case HCI_COMMAND_PKT:
@@ -847,8 +823,7 @@ static int btusb_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 
 		pipe = usb_sndctrlpipe(data->udev, 0x00);
 
-		opcode = (u16*)(skb->data);
-	//	BT_DBG("dr->wLength =%d,opcode=0x%04x",dr->wLength,*opcode);
+		opcode = (u16 *)(skb->data);
 		usb_fill_control_urb(urb, data->udev, pipe, (void *) dr,
 				skb->data, skb->len, btusb_tx_complete, skb);
 
@@ -1424,18 +1399,17 @@ exit_mfg_deactivate:
 
 	BT_INFO("%s: Intel Bluetooth firmware patch completed and deactivated",
 		hdev->name);
-
 	return 0;
 }
 
 /* signature: Realtek */
-const uint8_t RTK_EPATCH_SIGNATURE[8] = {0x52,0x65,0x61,0x6C,0x74,0x65,0x63,0x68};
+const uint8_t RTK_EPATCH_SIGNATURE[8] = {0x52, 0x65, 0x61, 0x6C, 0x74, 0x65, 0x63, 0x68};
 /* Extension Section IGNATURE*/
-const uint8_t EXTENSION_SECTION_SIGNATURE[4] = {0x51,0x04,0xFD,0x77};
+const uint8_t EXTENSION_SECTION_SIGNATURE[4] = {0x51, 0x04, 0xFD, 0x77};
 /* Extension Section IGNATURE*/
-const uint8_t RTK_CONFIG_SIGNATURE[6] = {0x55,0xab,0x23,0x87,0x04,0x00};
-const uint8_t CONFIG_S0_ANTTENA[4] = {0xE3,0x01,0x01,0x04};
-const uint8_t CONFIG_S1_ANTTENA[4] = {0xE3,0x01,0x01,0x00};
+const uint8_t RTK_CONFIG_SIGNATURE[6] = {0x55, 0xab, 0x23, 0x87, 0x04, 0x00};
+const uint8_t CONFIG_S0_ANTTENA[4] = {0xE3, 0x01, 0x01, 0x04};
+const uint8_t CONFIG_S1_ANTTENA[4] = {0xE3, 0x01, 0x01, 0x00};
 
 #define USE_S0_ANTTENA	1
 #define ROM_LMP_8723A	0x1200
@@ -1448,10 +1422,11 @@ uint16_t project_id[] = {
 	ROM_LMP_8821A,
 	ROM_LMP_8761A
 };
+
 struct rtl_rom_version_evt {
 	uint8_t status;
 	uint8_t version;
-} __attribute__ ((packed));
+} __packed;
 
 struct rtk_epatch_entry {
 	uint16_t chip_id;
@@ -1460,31 +1435,31 @@ struct rtk_epatch_entry {
 	uint32_t coex_version;
 	uint32_t svn_version;
 	uint32_t fw_version;
-} __attribute__ ((packed));
+} __packed;
 
 struct rtk_epatch {
 	uint8_t signature[8];
 	uint32_t fw_version;
 	uint16_t number_of_total_patch;
 	struct rtk_epatch_entry entry[0];
-} __attribute__ ((packed));
+} __packed;
 
-
-static int btusb_setup_rtl_get_oldfw( const struct firmware *fw,uint8_t **buf, int *buf_len)
+static int btusb_setup_rtl_get_oldfw(const struct firmware *fw, uint8_t **buf,
+				     int *buf_len)
 {
-
 	BT_INFO("%s", __func__);
 	/*check file length*/
-	if(fw->size<8){
+	if (fw->size < 8) {
 		BT_ERR("%s: file size %d error", __func__, (int)fw->size);
 		return -1;
 	}
 	/*check signature*/
-	if (!memcmp( fw->data, RTK_EPATCH_SIGNATURE, 8)) {
+	if (!memcmp(fw->data, RTK_EPATCH_SIGNATURE, 8)) {
 			BT_ERR("%s: 8723a check signature error", __func__);
 			return -1;
 	}
-	if (!(*buf = kzalloc(fw->size, GFP_KERNEL))) {
+	*buf = kzalloc(fw->size, GFP_KERNEL);
+	if (!(*buf)) {
 		BT_ERR("%s: Failed to allocate mem for fw&config", __func__);
 		return -1;
 	}
@@ -1494,7 +1469,8 @@ static int btusb_setup_rtl_get_oldfw( const struct firmware *fw,uint8_t **buf, i
 	return 0;
 }
 
-static struct rtk_epatch_entry *get_fw_patch_entry(struct rtk_epatch *patch_info, uint16_t rom_ver)
+static struct rtk_epatch_entry *get_fw_patch_entry(struct rtk_epatch *patch_info,
+						   uint16_t rom_ver)
 {
 	int patch_num = patch_info->number_of_total_patch;
 	uint8_t *patch_buf = (uint8_t *)patch_info;
@@ -1507,23 +1483,33 @@ static struct rtk_epatch_entry *get_fw_patch_entry(struct rtk_epatch *patch_info
 		if (*(uint16_t *)(patch_buf + 14 + 2*i) == rom_ver + 1) {
 			p_entry = kzalloc(sizeof(*p_entry), GFP_KERNEL);
 			if (!p_entry) {
-				BT_ERR("%s: Failed to allocate mem for patch entry", __func__);
+				BT_ERR("%s: Failed to allocate mem for patch entry",
+				       __func__);
 				return NULL;
 			}
 			p_entry->chip_id = rom_ver + 1;
-			p_entry->patch_length = *(uint16_t*)(patch_buf + 14 + 2*patch_num + 2*i);
-			p_entry->start_offset = *(uint32_t*)(patch_buf + 14 + 4*patch_num + 4*i);
-			p_entry->coex_version = *(uint32_t*)(patch_buf + p_entry->start_offset + p_entry->patch_length - 12);
-			p_entry->svn_version = *(uint32_t*)(patch_buf + p_entry->start_offset + p_entry->patch_length - 8);
-			p_entry->fw_version = *(uint32_t*)(patch_buf + p_entry->start_offset + p_entry->patch_length - 4);
-
-			coex_date = ((p_entry->coex_version >> 16) & 0x7ff) + ((p_entry->coex_version >> 27) * 10000);
+			p_entry->patch_length = *(uint16_t *)(patch_buf +
+						14 + 2*patch_num + 2*i);
+			p_entry->start_offset = *(uint32_t *)(patch_buf +
+						14 + 4*patch_num + 4*i);
+			p_entry->coex_version = *(uint32_t *)(patch_buf +
+						p_entry->start_offset +
+						p_entry->patch_length - 12);
+			p_entry->svn_version = *(uint32_t *)(patch_buf +
+						p_entry->start_offset +
+						p_entry->patch_length - 8);
+			p_entry->fw_version = *(uint32_t *)(patch_buf +
+					      p_entry->start_offset +
+					      p_entry->patch_length - 4);
+			coex_date = ((p_entry->coex_version >> 16) & 0x7ff) +
+				    ((p_entry->coex_version >> 27) * 10000);
 			coex_ver = p_entry->coex_version & 0xffff;
 
-			BT_INFO("%s: chip id %d, patch length 0x%04x, patch offset 0x%08x,\n "
-					"coex version 20%06d-0x%04x, svn version 0x%08x, fw version 0x%08x",
-					__func__, p_entry->chip_id, p_entry->patch_length, p_entry->start_offset,
-					coex_date, coex_ver, p_entry->svn_version, p_entry->fw_version);
+			BT_INFO("%s: chip id %d, patch length 0x%04x, patch offset 0x%08x,\n coex version 20%06d-0x%04x, svn version 0x%08x, fw version 0x%08x",
+				__func__, p_entry->chip_id,
+				p_entry->patch_length, p_entry->start_offset,
+				coex_date, coex_ver, p_entry->svn_version,
+				p_entry->fw_version);
 			break;
 		}
 	}
@@ -1531,14 +1517,15 @@ static struct rtk_epatch_entry *get_fw_patch_entry(struct rtk_epatch *patch_info
 	return p_entry;
 }
 
-static int btusb_setup_rtl_get_newfw ( struct hci_dev *hdev,
-	const struct firmware *fw,uint8_t **buf,int *buf_len,uint16_t lmp_version)
+static int btusb_setup_rtl_get_newfw(struct hci_dev *hdev,
+				     const struct firmware *fw,
+				     uint8_t **buf, int *buf_len,
+				     uint16_t lmp_version)
 {
-
 	struct sk_buff *skb;
 	uint16_t rom_ver;
 	const uint8_t *temp;
-	uint8_t opcode,len;
+	uint8_t opcode, len;
 	uint8_t data;
 	struct rtk_epatch *patch_info = NULL;
 	struct rtk_epatch_entry *patch_entry = NULL;
@@ -1549,9 +1536,7 @@ static int btusb_setup_rtl_get_newfw ( struct hci_dev *hdev,
 	skb = __hci_cmd_sync(hdev, 0xfc6d, 0, NULL, HCI_INIT_TIMEOUT);
 	if (IS_ERR(skb)) {
 		rom_ver = 0;
-	}
-	else
-	{
+	} else {
 		if (skb->len != sizeof(*rom_evt)) {
 			BT_ERR("Realtek rom version event length mismatch");
 			kfree_skb(skb);
@@ -1560,7 +1545,8 @@ static int btusb_setup_rtl_get_newfw ( struct hci_dev *hdev,
 
 		rom_evt = (struct rtl_rom_version_evt *)skb->data;
 		if (rom_evt->status) {
-			BT_ERR("RTL fw version event failed (%02x)",rom_evt->status);
+			BT_ERR("RTL fw version event failed (%02x)",
+			       rom_evt->status);
 			kfree_skb(skb);
 			rom_evt->version = 0;
 		}
@@ -1570,7 +1556,7 @@ static int btusb_setup_rtl_get_newfw ( struct hci_dev *hdev,
 	BT_INFO("read rom version: %d", rom_ver);
 
 	/*check file length*/
-	if(fw->size<20){
+	if (fw->size < 20) {
 		BT_ERR("%s: file size %d error", __func__, (int)fw->size);
 		return -1;
 	}
@@ -1582,31 +1568,33 @@ static int btusb_setup_rtl_get_newfw ( struct hci_dev *hdev,
 	}
 	/*check Extension Section*/
 	if (memcmp(temp + fw->size-4, EXTENSION_SECTION_SIGNATURE, 4)) {
-			BT_ERR("%s: Failed to check extension section signature", __func__);
-			return -1;
+		BT_ERR("%s: Failed to check extension section signature",
+		       __func__);
+		return -1;
 	}
 
-	temp = fw->data +fw->size - 5;
+	temp = fw->data + fw->size - 5;
 	while (*temp != 0xFF) {
 		opcode = *temp;
 		len = *(temp-1);
-		data =*(temp-2);
+		data = *(temp-2);
 		if (*temp == 0x00) {
 			if (lmp_version != project_id[data]) {
-				BT_ERR("%s: Default lmp_version 0x%04x, project_id 0x%04x "
-						"-> not match", __func__, lmp_version, project_id[data]);
+				BT_ERR("%s: Default lmp_version 0x%04x, project_id 0x%04x -> not match",
+				       __func__,
+				       lmp_version, project_id[data]);
 				return -1;
 			}
-			BT_DBG("%s: opcode = 0x%x, length = 0x%x, data = 0x%x", __func__,
-					opcode, len,data);
+			BT_DBG("%s: opcode = 0x%x, length = 0x%x, data = 0x%x",
+			       __func__, opcode, len, data);
 		}
-		temp -= len+ 2;
+		temp -= len + 2;
 	}
 
 	/* Get right epatch entry */
-	patch_info = (struct rtk_epatch*)fw->data;
+	patch_info = (struct rtk_epatch *)fw->data;
 	BT_INFO("%s:fw_version 0x%x, number_of_total_patch %d", __func__,
-			patch_info->fw_version,patch_info->number_of_total_patch);
+		patch_info->fw_version, patch_info->number_of_total_patch);
 
 	patch_entry = get_fw_patch_entry(patch_info, rom_ver);
 	if (patch_entry == NULL) {
@@ -1614,23 +1602,27 @@ static int btusb_setup_rtl_get_newfw ( struct hci_dev *hdev,
 		return -1;
 	}
 	/*replace version informations*/
-	if (!(*buf = kzalloc(patch_entry->patch_length+10, GFP_KERNEL))) {
+	*buf = kzalloc(patch_entry->patch_length+10, GFP_KERNEL);
+	if (!(*buf)) {
 		BT_ERR("%s: Failed to allocate mem for fw&config", __func__);
 		return -1;
 	}
 	temp = fw->data+patch_entry->start_offset;
 	memcpy(*buf, temp, patch_entry->patch_length);
-	memcpy( *buf+patch_entry->patch_length-4, &patch_info->fw_version, 4);
+	memcpy(*buf+patch_entry->patch_length-4,
+	       &patch_info->fw_version, 4);
 	*buf_len = patch_entry->patch_length;
 
-	/*for 8723B,use S0 Anttena for bluetooth*/
-	if(lmp_version==ROM_LMP_8723B)
-	{
-		memcpy(*buf+patch_entry->patch_length,RTK_CONFIG_SIGNATURE,6);
+	/*for 8723B, use S0 Anttena for bluetooth*/
+	if (lmp_version == ROM_LMP_8723B) {
+		memcpy(*buf+patch_entry->patch_length,
+		       RTK_CONFIG_SIGNATURE, 6);
 		if (USE_S0_ANTTENA)
-			memcpy(*buf+patch_entry->patch_length+6,CONFIG_S0_ANTTENA,4);
+			memcpy(*buf+patch_entry->patch_length+6,
+			       CONFIG_S0_ANTTENA, 4);
 		else
-			memcpy(*buf+patch_entry->patch_length+6,CONFIG_S1_ANTTENA,4);
+			memcpy(*buf+patch_entry->patch_length+6,
+			       CONFIG_S1_ANTTENA, 4);
 		*buf_len += 10;
 		BT_DBG("USE_S0_ANTTENA");
 	}
@@ -1640,27 +1632,27 @@ static int btusb_setup_rtl_get_newfw ( struct hci_dev *hdev,
 }
 
 #define PATCH_SEG_MAX	252
- struct download_cp{
+struct download_cp {
 	uint8_t index;
 	uint8_t data[PATCH_SEG_MAX];
-} __attribute__((packed)) ;
+} __packed;
 
-struct download_rp{
+struct download_rp {
 	uint8_t status;
 	uint8_t index;
-} __attribute__((packed)) ;
+} __packed;
 
 static int btusb_setup_rtl_patching(struct hci_dev *hdev,
-				     uint8_t *fw_data ,int fw_len)
+				    uint8_t *fw_data , int fw_len)
 {
-	uint8_t *pcur=NULL;
+	uint8_t *pcur = NULL;
 	struct sk_buff *skb;
 	int i, frag_num, frag_len;
 	struct hci_command_hdr cmd;
 	struct download_cp cmd_para;
 	struct download_rp *evt_para;
 
-	if(!fw_data)
+	if (!fw_data)
 		return -1;
 
 	cmd.opcode = 0xfc20;
@@ -1669,8 +1661,8 @@ static int btusb_setup_rtl_patching(struct hci_dev *hdev,
 	frag_len = PATCH_SEG_MAX;
 	pcur = fw_data;
 
-	BT_DBG("%s start :pcur=%p, fw_len = %d,frag_num=%d,frag_len=%d ",
-		__func__,pcur,fw_len,frag_num,frag_len);
+	BT_DBG("%s start :pcur =%p, fw_len = %d, frag_num =%d, frag_len =%d ",
+		__func__, pcur, fw_len, frag_num, frag_len);
 
 	for (i = 0; i < frag_num; i++) {
 		cmd_para.index = i;
@@ -1678,50 +1670,54 @@ static int btusb_setup_rtl_patching(struct hci_dev *hdev,
 			frag_len = fw_len % PATCH_SEG_MAX;
 			cmd.plen = 1+frag_len;
 			cmd_para.index |= 0x80;
-			BT_DBG("last:frag_len = %d",frag_len);
+			BT_DBG("last:frag_len = %d", frag_len);
 		}
-		BT_DBG("cmd_para.index=0x%x,frag_len = %d",cmd_para.index, frag_len);
+		BT_DBG("cmd_para.index = 0x%x, frag_len = %d",
+		       cmd_para.index, frag_len);
 
 		memcpy(cmd_para.data, pcur, frag_len);
 		pcur += frag_len;
 
-		skb = __hci_cmd_sync(hdev, cmd.opcode, cmd.plen, &cmd_para,HCI_INIT_TIMEOUT);
+		skb = __hci_cmd_sync(hdev, cmd.opcode, cmd.plen, &cmd_para,
+				     HCI_INIT_TIMEOUT);
 		if (IS_ERR(skb)) {
-			BT_ERR("reading Realtek patch command failed (%ld)",PTR_ERR(skb));
+			BT_ERR("reading Realtek patch command failed (%ld)",
+			       PTR_ERR(skb));
 			return PTR_ERR(skb);
 		}
-		if (skb->len != sizeof(struct download_rp )) {
-			BT_ERR("Realtek patch event length mismatch skb->len=%d", skb->len);
+		if (skb->len != sizeof(struct download_rp)) {
+			BT_ERR("Realtek patch event length mismatch skb->len =%d",
+			       skb->len);
 			kfree_skb(skb);
 			return -EIO;
 		}
 
 		evt_para = (struct download_rp *)skb->data;
 		if (evt_para->status) {
-			BT_ERR("Realtek patch event failed (%02x)",evt_para->status);
+			BT_ERR("Realtek patch event failed (%02x)",
+			       evt_para->status);
 			kfree_skb(skb);
 			return -bt_to_errno(evt_para->status);
 		}
-		BT_INFO("Receive acked index %d",evt_para->index);
+		BT_INFO("Receive acked index %d", evt_para->index);
 		kfree_skb(skb);
 	}
 
-
-	BT_DBG("%s end ",__func__);
-return 0;
+	BT_DBG("%s end ", __func__);
+	return 0;
 }
 
 static int btusb_setup_rtl(struct hci_dev *hdev)
 {
+	struct hci_rp_read_local_version *ver;
 	struct sk_buff *skb;
 	char fwname[16];
 	const struct firmware *fw;
-	uint8_t *fw_ptr=NULL;
-	int ret=0,fw_len=0;
+	uint8_t *fw_ptr = NULL;
+	int ret = 0, fw_len = 0;
 	uint16_t lmp_version;
-	struct hci_rp_read_local_version *ver;
 
-	BT_DBG("%s start",__func__);
+	BT_DBG("%s start", __func__);
 
 	/*read local version to check module type and whether patched or not*/
 	skb = __hci_cmd_sync(hdev, HCI_OP_READ_LOCAL_VERSION, 0, NULL,
@@ -1738,39 +1734,40 @@ static int btusb_setup_rtl(struct hci_dev *hdev)
 	}
 	ver = (struct hci_rp_read_local_version *)skb->data;
 	if (ver->status) {
-		BT_ERR("Realtek fw version event failed (%02x)",ver->status);
+		BT_ERR("Realtek fw version event failed (%02x)",
+		       ver->status);
 		kfree_skb(skb);
 		return -bt_to_errno(ver->status);
 	}
 
-	BT_INFO("%s: read local version: \n\
-		hci_rev=%04x,\
-		hci_ver=%04x,\
-		lmp_subver=%04x,\
-		lmp_ver=%04X,manufacturer=%04X",
-		hdev->name, ver->hci_rev,ver->hci_ver,
-		ver->lmp_subver,ver->lmp_ver,
+	BT_INFO("%s: read local version:\n hci_rev =%04x, hci_ver =%04x, lmp_subver =%04x, lmp_ver =%04X, manufacturer =%04X",
+		hdev->name, ver->hci_rev, ver->hci_ver,
+		ver->lmp_subver, ver->lmp_ver,
 		ver->manufacturer);
 
 	lmp_version = ver->lmp_subver;
 	kfree_skb(skb);
 
-	switch(lmp_version){
-		case ROM_LMP_8723A:
-			snprintf(fwname, sizeof(fwname), "rtl8723a_fw.bin"); break;
-		case ROM_LMP_8723B:
-			snprintf(fwname, sizeof(fwname), "rtl8723b_fw.bin"); break;
-		case ROM_LMP_8821A:
-			snprintf(fwname, sizeof(fwname), "rtl8821a_fw.bin"); break;
-		case ROM_LMP_8761A:
-			snprintf(fwname, sizeof(fwname), "rtl8761a_fw.bin"); break;
-		default:
-			BT_ERR("Realtek device is already patched.");
-			return 0;
+	switch (lmp_version) {
+	case ROM_LMP_8723A:
+		snprintf(fwname, sizeof(fwname), "rtl8723a_fw");
+		break;
+	case ROM_LMP_8723B:
+		snprintf(fwname, sizeof(fwname), "rtl8723b_fw");
+		break;
+	case ROM_LMP_8821A:
+		snprintf(fwname, sizeof(fwname), "rtl8821a_fw");
+		break;
+	case ROM_LMP_8761A:
+		snprintf(fwname, sizeof(fwname), "rtl8761a_fw");
+		break;
+	default:
+		BT_ERR("Realtek device is already patched.");
+		return 0;
 	}
 
 	/*get firmware patch according to local version*/
-	BT_DBG("Realtek Bluetooth firmware file: %s",fwname);
+	BT_DBG("Realtek Bluetooth firmware file: %s", fwname);
 
 	ret = request_firmware(&fw, fwname, &hdev->dev);
 	if (ret < 0) {
@@ -1778,27 +1775,26 @@ static int btusb_setup_rtl(struct hci_dev *hdev)
 		       fwname, ret);
 		return ret;
 	}
-	BT_DBG("%s fw->data=%p fw->size= %d ", __func__, fw->data,
+	BT_DBG("%s fw->data =%p fw->size = %d ", __func__, fw->data,
 	       (int)fw->size);
 
 	/*For 8723a, use old style patch*/
-	if (lmp_version== ROM_LMP_8723A)
-		ret =btusb_setup_rtl_get_oldfw(fw,&fw_ptr,&fw_len);
+	if (lmp_version == ROM_LMP_8723A)
+		ret = btusb_setup_rtl_get_oldfw(fw, &fw_ptr, &fw_len);
 	/*For other module, use new style patch*/
 	else
-		ret =btusb_setup_rtl_get_newfw(hdev,fw,&fw_ptr,&fw_len,lmp_version);
-	if (ret<0) {
+		ret = btusb_setup_rtl_get_newfw(hdev, fw, &fw_ptr,
+						&fw_len, lmp_version);
+	if (ret < 0) {
 		release_firmware(fw);
 		return ret;
 	}
 	/*download firmware to controller*/
-	ret = btusb_setup_rtl_patching(hdev,fw_ptr,fw_len);
+	ret = btusb_setup_rtl_patching(hdev, fw_ptr, fw_len);
 
 	release_firmware(fw);
-	if(fw_ptr)
-		kfree(fw_ptr);
+	kfree(fw_ptr);
 	return ret;
-
 }
 
 static int btusb_probe(struct usb_interface *intf,
@@ -1817,6 +1813,7 @@ static int btusb_probe(struct usb_interface *intf,
 
 	if (!id->driver_info) {
 		const struct usb_device_id *match;
+
 		match = usb_match_id(intf, blacklist_table);
 		if (match)
 			id = match;
@@ -1909,10 +1906,9 @@ static int btusb_probe(struct usb_interface *intf,
 	if (id->driver_info & BTUSB_INTEL)
 		hdev->setup = btusb_setup_intel;
 
-	if (id->driver_info & BTUSB_RTL)
-	{
+	if (id->driver_info & BTUSB_RTL) {
 		set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);
-		if (!device_may_wakeup(&(data->udev ->dev)))
+		if (!device_may_wakeup(&(data->udev->dev)))
 			intf->needs_binding = 1;
 
 		hdev->setup = btusb_setup_rtl;
