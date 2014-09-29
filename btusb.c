@@ -37,6 +37,7 @@ static bool disable_scofix;
 static bool force_scofix;
 
 static bool reset = 1;
+static int debug = 0;
 
 static struct usb_driver btusb_driver;
 
@@ -57,13 +58,15 @@ static struct usb_driver btusb_driver;
 #undef BT_DBG
 #endif
 #define BT_DBG(fmt, arg...)			\
-	pr_info("test_btusb: %s " fmt "\n" , __func__ , ## arg)
+	if (debug >= 2)				\
+		pr_info("test_btusb: %s " fmt "\n" , __func__ , ## arg)
 
 #ifdef BT_INFO
 #undef BT_INFO
 #endif
 #define BT_INFO(fmt, arg...)			\
-	pr_info("test_btusb: %s " fmt "\n" , __func__ , ## arg)
+	if (debug >= 1)				\
+		pr_info("test_btusb: %s " fmt "\n" , __func__ , ## arg)
 #ifdef BT_ERR
 #undef BT_ERR
 #endif
@@ -1413,6 +1416,7 @@ const uint8_t CONFIG_S1_ANTTENA[4] = {0xE3, 0x01, 0x01, 0x00};
 
 #define USE_S0_ANTTENA	1
 #define ROM_LMP_8723A	0x1200
+#define ROM_LMP_3499	0x3499
 #define ROM_LMP_8723B    0x8723
 #define ROM_LMP_8821A    0X8821
 #define ROM_LMP_8761A    0X8761
@@ -1750,6 +1754,7 @@ static int btusb_setup_rtl(struct hci_dev *hdev)
 
 	switch (lmp_version) {
 	case ROM_LMP_8723A:
+	case ROM_LMP_3499:
 		snprintf(fwname, sizeof(fwname), "rtl8723a_fw");
 		break;
 	case ROM_LMP_8723B:
@@ -1762,7 +1767,7 @@ static int btusb_setup_rtl(struct hci_dev *hdev)
 		snprintf(fwname, sizeof(fwname), "rtl8761a_fw");
 		break;
 	default:
-		BT_ERR("Realtek device is already patched.");
+		pr_err("btusb: lmp_version 0x%x not recognized\n", lmp_version);
 		return 0;
 	}
 
@@ -1779,7 +1784,7 @@ static int btusb_setup_rtl(struct hci_dev *hdev)
 	       (int)fw->size);
 
 	/*For 8723a, use old style patch*/
-	if (lmp_version == ROM_LMP_8723A)
+	if ((lmp_version == ROM_LMP_8723A) || (lmp_version == ROM_LMP_3499))
 		ret = btusb_setup_rtl_get_oldfw(fw, &fw_ptr, &fw_len);
 	/*For other module, use new style patch*/
 	else
@@ -2137,6 +2142,9 @@ MODULE_PARM_DESC(force_scofix, "Force fixup of wrong SCO buffers size");
 
 module_param(reset, bool, 0644);
 MODULE_PARM_DESC(reset, "Send HCI reset command on initialization");
+
+module_param(debug, int, 0644);
+MODULE_PARM_DESC(debug, "Set debug level (0-2), default 0");
 
 MODULE_AUTHOR("Marcel Holtmann <marcel@holtmann.org>");
 MODULE_DESCRIPTION("Generic Bluetooth USB driver ver " VERSION);
