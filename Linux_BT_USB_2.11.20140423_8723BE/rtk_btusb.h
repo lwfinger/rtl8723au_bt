@@ -87,7 +87,6 @@ static int patch_add(struct usb_interface* intf);
 static void patch_remove(struct usb_interface* intf);
 static int download_patch(struct usb_interface* intf);
 static int set_btoff(struct usb_interface* intf);
-static void print_event(struct sk_buff *skb);
 static void print_command(struct sk_buff *skb);
 static void print_acl (struct sk_buff *skb,int dataOut);
 

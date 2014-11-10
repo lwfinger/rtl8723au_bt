@@ -118,6 +118,141 @@ static int inc_tx(struct btusb_data *data)
 	return rv;
 }
 
+#ifndef hci_recv_fragment
+/* The above entry point disappears from the kernel in v3.18.
+ * To allow the driver to continue to function with kernel sources
+ * that have 3.18 code, but advertise 3.17 in uname, this structure
+ * is employed.
+ */
+static int hci_reassembly(struct hci_dev *hdev, int type, void *data,
+			  int count, __u8 index)
+{
+	int len = 0;
+	int hlen = 0;
+	int remain = count;
+	struct sk_buff *skb;
+	struct bt_skb_cb *scb;
+
+	if ((type < HCI_ACLDATA_PKT || type > HCI_EVENT_PKT) ||
+	    index >= NUM_REASSEMBLY)
+		return -EILSEQ;
+
+	skb = hdev->reassembly[index];
+
+	if (!skb) {
+		switch (type) {
+		case HCI_ACLDATA_PKT:
+			len = HCI_MAX_FRAME_SIZE;
+			hlen = HCI_ACL_HDR_SIZE;
+			break;
+		case HCI_EVENT_PKT:
+			len = HCI_MAX_EVENT_SIZE;
+			hlen = HCI_EVENT_HDR_SIZE;
+			break;
+		case HCI_SCODATA_PKT:
+			len = HCI_MAX_SCO_SIZE;
+			hlen = HCI_SCO_HDR_SIZE;
+			break;
+		}
+
+		skb = bt_skb_alloc(len, GFP_ATOMIC);
+		if (!skb)
+			return -ENOMEM;
+
+		scb = (void *) skb->cb;
+		scb->expect = hlen;
+		scb->pkt_type = type;
+
+		hdev->reassembly[index] = skb;
+	}
+
+	while (count) {
+		scb = (void *) skb->cb;
+		len = min_t(uint, scb->expect, count);
+
+		memcpy(skb_put(skb, len), data, len);
+
+		count -= len;
+		data += len;
+		scb->expect -= len;
+		remain = count;
+
+		switch (type) {
+		case HCI_EVENT_PKT:
+			if (skb->len == HCI_EVENT_HDR_SIZE) {
+				struct hci_event_hdr *h = hci_event_hdr(skb);
+				scb->expect = h->plen;
+
+				if (skb_tailroom(skb) < scb->expect) {
+					kfree_skb(skb);
+					hdev->reassembly[index] = NULL;
+					return -ENOMEM;
+				}
+			}
+			break;
+
+		case HCI_ACLDATA_PKT:
+			if (skb->len  == HCI_ACL_HDR_SIZE) {
+				struct hci_acl_hdr *h = hci_acl_hdr(skb);
+				scb->expect = __le16_to_cpu(h->dlen);
+
+				if (skb_tailroom(skb) < scb->expect) {
+					kfree_skb(skb);
+					hdev->reassembly[index] = NULL;
+					return -ENOMEM;
+				}
+			}
+			break;
+
+		case HCI_SCODATA_PKT:
+			if (skb->len == HCI_SCO_HDR_SIZE) {
+				struct hci_sco_hdr *h = hci_sco_hdr(skb);
+				scb->expect = h->dlen;
+
+				if (skb_tailroom(skb) < scb->expect) {
+					kfree_skb(skb);
+					hdev->reassembly[index] = NULL;
+					return -ENOMEM;
+				}
+			}
+			break;
+		}
+
+		if (scb->expect == 0) {
+			/* Complete frame */
+
+			bt_cb(skb)->pkt_type = type;
+			hci_recv_frame(hdev, skb);
+
+			hdev->reassembly[index] = NULL;
+			return remain;
+		}
+	}
+
+	return remain;
+}
+
+static int hci_recv_fragment(struct hci_dev *hdev, int type, void *data,
+			     int count)
+{
+	int rem = 0;
+
+	if (type < HCI_ACLDATA_PKT || type > HCI_EVENT_PKT)
+		return -EILSEQ;
+
+	while (count) {
+		rem = hci_reassembly(hdev, type, data, count, type - 1);
+		if (rem < 0)
+			return rem;
+
+		data += (count - rem);
+		count = rem;
+	}
+
+	return rem;
+}
+#endif
+
 static void btusb_intr_complete(struct urb *urb)
 {
 	struct hci_dev *hdev = urb->context;
@@ -2252,125 +2387,6 @@ void print_command(struct sk_buff *skb)
 
 #endif
 }
-void print_event(struct sk_buff *skb)
-{
-#if PRINT_CMD_EVENT
-	uint wlength = skb->len;
-	uint icount=0;
-	u8* opcode = (u8*)(skb->data);
-	u8 paramLen=*(opcode+1);
-
-	switch (*opcode) {
-	case HCI_EV_INQUIRY_COMPLETE:
-		printk("HCI_EV_INQUIRY_COMPLETE");
-		break;
-	case HCI_EV_INQUIRY_RESULT:
-		printk("HCI_EV_INQUIRY_RESULT");
-		break;
-	case HCI_EV_CONN_COMPLETE:
-		printk("HCI_EV_CONN_COMPLETE");
-		break;
-	case HCI_EV_CONN_REQUEST:
-		printk("HCI_EV_CONN_REQUEST");
-		break;
-	case HCI_EV_DISCONN_COMPLETE:
-		printk("HCI_EV_DISCONN_COMPLETE");
-		break;
-	case HCI_EV_AUTH_COMPLETE:
-		printk("HCI_EV_AUTH_COMPLETE");
-		break;
-	case HCI_EV_REMOTE_NAME:
-		printk("HCI_EV_REMOTE_NAME");
-		break;
-	case HCI_EV_ENCRYPT_CHANGE:
-		printk("HCI_EV_ENCRYPT_CHANGE");
-		break;
-	case HCI_EV_CHANGE_LINK_KEY_COMPLETE:
-		printk("HCI_EV_CHANGE_LINK_KEY_COMPLETE");
-		break;
-	case HCI_EV_REMOTE_FEATURES:
-		printk("HCI_EV_REMOTE_FEATURES");
-		break;
-	case HCI_EV_REMOTE_VERSION:
-		printk("HCI_EV_REMOTE_VERSION");
-		break;
-	case HCI_EV_QOS_SETUP_COMPLETE:
-		printk("HCI_EV_QOS_SETUP_COMPLETE");
-		break;
-	case HCI_EV_CMD_COMPLETE:
-		printk("HCI_EV_CMD_COMPLETE");
-		break;
-	case HCI_EV_CMD_STATUS:
-		printk("HCI_EV_CMD_STATUS");
-		break;
-	case HCI_EV_ROLE_CHANGE:
-		printk("HCI_EV_ROLE_CHANGE");
-		break;
-	case HCI_EV_NUM_COMP_PKTS:
-		printk("HCI_EV_NUM_COMP_PKTS");
-		break;
-	case HCI_EV_MODE_CHANGE:
-		printk("HCI_EV_MODE_CHANGE");
-		break;
-	case HCI_EV_PIN_CODE_REQ:
-		printk("HCI_EV_PIN_CODE_REQ");
-		break;
-	case HCI_EV_LINK_KEY_REQ:
-		printk("HCI_EV_LINK_KEY_REQ");
-		break;
-	case HCI_EV_LINK_KEY_NOTIFY:
-		printk("HCI_EV_LINK_KEY_NOTIFY");
-		break;
-	case HCI_EV_CLOCK_OFFSET:
-		printk("HCI_EV_CLOCK_OFFSET");
-		break;
-	case HCI_EV_PKT_TYPE_CHANGE:
-		printk("HCI_EV_PKT_TYPE_CHANGE");
-		break;
-	case HCI_EV_PSCAN_REP_MODE:
-		printk("HCI_EV_PSCAN_REP_MODE");
-		break;
-	case HCI_EV_INQUIRY_RESULT_WITH_RSSI:
-		printk("HCI_EV_INQUIRY_RESULT_WITH_RSSI");
-		break;
-	case HCI_EV_REMOTE_EXT_FEATURES:
-		printk("HCI_EV_REMOTE_EXT_FEATURES");
-		break;
-	case HCI_EV_SYNC_CONN_COMPLETE:
-		printk("HCI_EV_SYNC_CONN_COMPLETE");
-		break;
-	case HCI_EV_SYNC_CONN_CHANGED:
-		printk("HCI_EV_SYNC_CONN_CHANGED");
-		break;
-	case HCI_EV_SNIFF_SUBRATE:
-		printk("HCI_EV_SNIFF_SUBRATE");
-		break;
-	case HCI_EV_EXTENDED_INQUIRY_RESULT:
-		printk("HCI_EV_EXTENDED_INQUIRY_RESULT");
-		break;
-	case HCI_EV_IO_CAPA_REQUEST:
-		printk("HCI_EV_IO_CAPA_REQUEST");
-		break;
-	case HCI_EV_SIMPLE_PAIR_COMPLETE:
-		printk("HCI_EV_SIMPLE_PAIR_COMPLETE");
-		break;
-	case HCI_EV_REMOTE_HOST_FEATURES:
-		printk("HCI_EV_REMOTE_HOST_FEATURES");
-		break;
-	default:
-		printk("event");
-		break;
-	}
-	printk(":%02x,len:%d,",*opcode,paramLen);
-	for(icount=2;(icount<wlength)&&(icount<24);icount++)
-	{
-			printk("%02x ",*(opcode+icount) );
-	}
-	printk("\n");
-
-#endif
-
-}
 
 #if CONFIG_BLUEDROID //for 4.2
 //=========================================
@@ -2964,8 +2980,6 @@ static int hci_reassembly(struct hci_dev *hdev, int type, void *data,
 
 			if(HCI_ACLDATA_PKT==type )
 				print_acl(skb,0);
-			if(HCI_EVENT_PKT==type)
-				print_event(skb);
 
 			bt_cb(skb)->pkt_type = type;
 			hci_recv_frame(skb);
