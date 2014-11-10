@@ -361,6 +361,141 @@ static int inc_tx(struct btusb_data *data)
 	return rv;
 }
 
+#ifndef hci_recv_fragment
+/* The above entry point disappears from the kernel in v3.18.
+ * To allow the driver to continue to function with kernel sources
+ * that have 3.18 code, but advertise 3.17 in uname, this structure
+ * is employed.
+ */
+static int hci_reassembly(struct hci_dev *hdev, int type, void *data,
+			  int count, __u8 index)
+{
+	int len = 0;
+	int hlen = 0;
+	int remain = count;
+	struct sk_buff *skb;
+	struct bt_skb_cb *scb;
+
+	if ((type < HCI_ACLDATA_PKT || type > HCI_EVENT_PKT) ||
+	    index >= NUM_REASSEMBLY)
+		return -EILSEQ;
+
+	skb = hdev->reassembly[index];
+
+	if (!skb) {
+		switch (type) {
+		case HCI_ACLDATA_PKT:
+			len = HCI_MAX_FRAME_SIZE;
+			hlen = HCI_ACL_HDR_SIZE;
+			break;
+		case HCI_EVENT_PKT:
+			len = HCI_MAX_EVENT_SIZE;
+			hlen = HCI_EVENT_HDR_SIZE;
+			break;
+		case HCI_SCODATA_PKT:
+			len = HCI_MAX_SCO_SIZE;
+			hlen = HCI_SCO_HDR_SIZE;
+			break;
+		}
+
+		skb = bt_skb_alloc(len, GFP_ATOMIC);
+		if (!skb)
+			return -ENOMEM;
+
+		scb = (void *) skb->cb;
+		scb->expect = hlen;
+		scb->pkt_type = type;
+
+		hdev->reassembly[index] = skb;
+	}
+
+	while (count) {
+		scb = (void *) skb->cb;
+		len = min_t(uint, scb->expect, count);
+
+		memcpy(skb_put(skb, len), data, len);
+
+		count -= len;
+		data += len;
+		scb->expect -= len;
+		remain = count;
+
+		switch (type) {
+		case HCI_EVENT_PKT:
+			if (skb->len == HCI_EVENT_HDR_SIZE) {
+				struct hci_event_hdr *h = hci_event_hdr(skb);
+				scb->expect = h->plen;
+
+				if (skb_tailroom(skb) < scb->expect) {
+					kfree_skb(skb);
+					hdev->reassembly[index] = NULL;
+					return -ENOMEM;
+				}
+			}
+			break;
+
+		case HCI_ACLDATA_PKT:
+			if (skb->len  == HCI_ACL_HDR_SIZE) {
+				struct hci_acl_hdr *h = hci_acl_hdr(skb);
+				scb->expect = __le16_to_cpu(h->dlen);
+
+				if (skb_tailroom(skb) < scb->expect) {
+					kfree_skb(skb);
+					hdev->reassembly[index] = NULL;
+					return -ENOMEM;
+				}
+			}
+			break;
+
+		case HCI_SCODATA_PKT:
+			if (skb->len == HCI_SCO_HDR_SIZE) {
+				struct hci_sco_hdr *h = hci_sco_hdr(skb);
+				scb->expect = h->dlen;
+
+				if (skb_tailroom(skb) < scb->expect) {
+					kfree_skb(skb);
+					hdev->reassembly[index] = NULL;
+					return -ENOMEM;
+				}
+			}
+			break;
+		}
+
+		if (scb->expect == 0) {
+			/* Complete frame */
+
+			bt_cb(skb)->pkt_type = type;
+			hci_recv_frame(hdev, skb);
+
+			hdev->reassembly[index] = NULL;
+			return remain;
+		}
+	}
+
+	return remain;
+}
+
+static int hci_recv_fragment(struct hci_dev *hdev, int type, void *data,
+			     int count)
+{
+	int rem = 0;
+
+	if (type < HCI_ACLDATA_PKT || type > HCI_EVENT_PKT)
+		return -EILSEQ;
+
+	while (count) {
+		rem = hci_reassembly(hdev, type, data, count, type - 1);
+		if (rem < 0)
+			return rem;
+
+		data += (count - rem);
+		count = rem;
+	}
+
+	return rem;
+}
+#endif
+
 static void btusb_intr_complete(struct urb *urb)
 {
 	struct hci_dev *hdev = urb->context;
@@ -1744,7 +1879,9 @@ static int btusb_setup_rtl(struct hci_dev *hdev)
 		return -bt_to_errno(ver->status);
 	}
 
-	BT_INFO("%s: read local version:\n hci_rev =%04x, hci_ver =%04x, lmp_subver =%04x, lmp_ver =%04X, manufacturer =%04X",
+	if (ver->lmp_subver == 0x4ce1)
+		ver->lmp_subver = 0x8723;
+	pr_info("%s: read local version:\n hci_rev =%04x, hci_ver =%04x, lmp_subver =%04x, lmp_ver =%04X, manufacturer =%04X",
 		hdev->name, ver->hci_rev, ver->hci_ver,
 		ver->lmp_subver, ver->lmp_ver,
 		ver->manufacturer);
@@ -1772,7 +1909,7 @@ static int btusb_setup_rtl(struct hci_dev *hdev)
 	}
 
 	/*get firmware patch according to local version*/
-	BT_DBG("Realtek Bluetooth firmware file: %s", fwname);
+	pr_info("Realtek Bluetooth firmware file: %s", fwname);
 
 	ret = request_firmware(&fw, fwname, &hdev->dev);
 	if (ret < 0) {
