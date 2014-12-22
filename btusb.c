@@ -24,6 +24,7 @@
 #include <linux/module.h>
 #include <linux/usb.h>
 #include <linux/firmware.h>
+#include <linux/version.h>
 
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
@@ -361,12 +362,7 @@ static int inc_tx(struct btusb_data *data)
 	return rv;
 }
 
-#ifndef hci_recv_fragment
-/* The above entry point disappears from the kernel in v3.18.
- * To allow the driver to continue to function with kernel sources
- * that have 3.18 code, but advertise 3.17 in uname, this structure
- * is employed.
- */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0))
 static int hci_reassembly(struct hci_dev *hdev, int type, void *data,
 			  int count, __u8 index)
 {
