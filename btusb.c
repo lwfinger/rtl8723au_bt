@@ -1943,12 +1943,13 @@ static int btusb_probe(struct usb_interface *intf,
 	struct hci_dev *hdev;
 	int i, err;
 
-	BT_DBG("%s intf %p id %p",  __func__, intf, id);
+	pr_err("%s intf %p id %p",  __func__, intf, id);
 
 	/* interface numbers are hardcoded in the spec */
-	if (intf->cur_altsetting->desc.bInterfaceNumber != 0)
+	if (intf->cur_altsetting->desc.bInterfaceNumber != 0) {
+		pr_err("cur_altsetting->desc.bInterfaceNumber != 0\n");
 		return -ENODEV;
-
+	}
 	if (!id->driver_info) {
 		const struct usb_device_id *match;
 
@@ -1957,9 +1958,10 @@ static int btusb_probe(struct usb_interface *intf,
 			id = match;
 	}
 
-	if (id->driver_info == BTUSB_IGNORE)
+	if (id->driver_info == BTUSB_IGNORE) {
+		pr_err("driver_info == BTUSB_IGNORE\n");
 		return -ENODEV;
-
+	}
 	if (ignore_dga && id->driver_info & BTUSB_DIGIANSWER)
 		return -ENODEV;
 
@@ -1974,8 +1976,10 @@ static int btusb_probe(struct usb_interface *intf,
 
 		/* Old firmware would otherwise let ath3k driver load
 		 * patch and sysconfig files */
-		if (le16_to_cpu(udev->descriptor.bcdDevice) <= 0x0001)
+		if (le16_to_cpu(udev->descriptor.bcdDevice) <= 0x0001) {
+			pr_err("udev->descriptor.bcdDevice <= 0x0001\n");
 			return -ENODEV;
+		}
 	}
 
 	data = devm_kzalloc(&intf->dev, sizeof(*data), GFP_KERNEL);
@@ -2001,9 +2005,11 @@ static int btusb_probe(struct usb_interface *intf,
 		}
 	}
 
-	if (!data->intr_ep || !data->bulk_tx_ep || !data->bulk_rx_ep)
+	if (!data->intr_ep || !data->bulk_tx_ep || !data->bulk_rx_ep) {
+		pr_err("data->intr_ep %p, data->bulk_tx_ep %p, data->bulk_rx_ep %p\n",
+			data->intr_ep, data->bulk_tx_ep, data->bulk_rx_ep);
 		return -ENODEV;
-
+	}
 	data->cmdreq_type = USB_TYPE_CLASS;
 
 	data->udev = interface_to_usbdev(intf);
@@ -2108,6 +2114,7 @@ static int btusb_probe(struct usb_interface *intf,
 	err = hci_register_dev(hdev);
 	if (err < 0) {
 		hci_free_dev(hdev);
+		pr_err("Error in hci_register_dev\n");
 		return err;
 	}
 
