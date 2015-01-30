@@ -20,14 +20,10 @@ endif
 
 install:
 	@mkdir -p $(FW_DIR)
-	@cp -f rtl8723a_fw.bin $(FW_DIR)/.
-	@cp -f rtl8723b_fw.bin $(FW_DIR)/.
-	@cp -f rtl8821a_fw.bin $(FW_DIR)/.
-	@cp -f rtl8761a_fw.bin $(FW_DIR)/.
-	@cp -f rtl8723a_fw.bin $(FW_DIR)/rtl8723a_fw
-	@cp -f rtl8723b_fw.bin $(FW_DIR)/rtl8723b_fw
-	@cp -f rtl8821a_fw.bin $(FW_DIR)/rtl8821a_fw
-	@cp -f rtl8761a_fw.bin $(FW_DIR)/rtl8761a_fw
+	@cp -f rtl8723a_fw $(FW_DIR)/.
+	@cp -f rtl8723b_fw $(FW_DIR)/.
+	@cp -f rtl8821a_fw $(FW_DIR)/.
+	@cp -f rtl8761a_fw $(FW_DIR)/.
 	@cp -f btusb.ko $(DRV_DIR)/btusb.ko
 	depmod -a $(MDL_DIR)
 	@echo "installed revised btusb"
