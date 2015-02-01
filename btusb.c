@@ -98,8 +98,8 @@ static int inc_tx(struct btusb_data *data)
 	return rv;
 }
 
-static int hci_reassembly(struct hci_dev *hdev, int type, void *data,
-						  int count, __u8 index)
+int hci_reassembly(struct hci_dev *hdev, int type, void *data,
+		   int count, __u8 index)
 {
 	int len = 0;
 	int hlen = 0;
@@ -212,7 +212,7 @@ static int hci_reassembly(struct hci_dev *hdev, int type, void *data,
 	return remain;
 }
 
-static int hci_recv_fragment(struct hci_dev *hdev, int type, void *data, int count)
+int hci_recv_fragment(struct hci_dev *hdev, int type, void *data, int count)
 {
 	int rem = 0;
 
@@ -230,6 +230,7 @@ static int hci_recv_fragment(struct hci_dev *hdev, int type, void *data, int cou
 
 	return rem;
 }
+
 static void btusb_intr_complete(struct urb *urb)
 {
 	struct hci_dev *hdev = urb->context;
