@@ -394,6 +394,7 @@ struct btusb_data {
 	int (*recv_bulk)(struct btusb_data *data, void *buffer, int count);
 };
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0))
 static int btusb_wait_on_bit_timeout(void *word, int bit, unsigned long timeout,
 				     unsigned mode)
 {
@@ -403,6 +404,7 @@ static int btusb_wait_on_bit_timeout(void *word, int bit, unsigned long timeout,
 	return out_of_line_wait_on_bit_timeout(word, bit, bit_wait_timeout,
 					       mode, timeout);
 }
+#endif
 
 static inline void btusb_free_frags(struct btusb_data *data)
 {
@@ -2263,12 +2265,19 @@ static int btusb_recv_event_intel(struct hci_dev *hdev, struct sk_buff *skb)
 			if (skb->data[3] != 0x00)
 				test_bit(BTUSB_FIRMWARE_FAILED, &data->flags);
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0))
 			if (test_and_clear_bit(BTUSB_DOWNLOADING,
 					       &data->flags) &&
 			    test_bit(BTUSB_FIRMWARE_LOADED, &data->flags)) {
 				smp_mb__after_atomic();
 				wake_up_bit(&data->flags, BTUSB_DOWNLOADING);
 			}
+#else
+			if (test_and_clear_bit(BTUSB_DOWNLOADING,
+					       &data->flags) &&
+			    test_bit(BTUSB_FIRMWARE_LOADED, &data->flags))
+				wake_up_interruptible(&hdev->req_wait_q);
+#endif
 		}
 
 		/* When switching to the operational firmware the device
@@ -2647,6 +2656,7 @@ static int btusb_setup_intel_new(struct hci_dev *hdev)
 	 * and thus just timeout if that happens and fail the setup
 	 * of this device.
 	 */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0))
 	err = btusb_wait_on_bit_timeout(&data->flags, BTUSB_DOWNLOADING,
 					msecs_to_jiffies(5000),
 					TASK_INTERRUPTIBLE);
@@ -2661,7 +2671,38 @@ static int btusb_setup_intel_new(struct hci_dev *hdev)
 		err = -ETIMEDOUT;
 		goto done;
 	}
+#else
+	if (test_bit(BTUSB_DOWNLOADING, &data->flags)) {
+		DECLARE_WAITQUEUE(wait, current);
+		signed long timeout;
 
+		BT_INFO("%s: Waiting for firmware download to complete",
+			hdev->name);
+
+		add_wait_queue(&hdev->req_wait_q, &wait);
+		set_current_state(TASK_INTERRUPTIBLE);
+
+		/* The firmware loading should not take longer than 5 seconds
+		 * and thus just timeout if that happens and fail the setup
+		 * of this device.
+		 */
+		timeout = schedule_timeout(msecs_to_jiffies(5000));
+
+		remove_wait_queue(&hdev->req_wait_q, &wait);
+
+		if (signal_pending(current)) {
+			BT_ERR("%s: Firmware loading interrupted", hdev->name);
+			err = -EINTR;
+			goto done;
+		}
+
+		if (!timeout) {
+			BT_ERR("%s: Firmware loading timeout", hdev->name);
+			err = -ETIMEDOUT;
+			goto done;
+		}
+	}
+#endif
 	if (test_bit(BTUSB_FIRMWARE_FAILED, &data->flags)) {
 		BT_ERR("%s: Firmware loading failed", hdev->name);
 		err = -ENOEXEC;
@@ -2700,6 +2741,7 @@ done:
 	 */
 	BT_INFO("%s: Waiting for device to boot", hdev->name);
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0))
 	err = btusb_wait_on_bit_timeout(&data->flags, BTUSB_BOOTING,
 					msecs_to_jiffies(1000),
 					TASK_INTERRUPTIBLE);
@@ -2713,7 +2755,37 @@ done:
 		BT_ERR("%s: Device boot timeout", hdev->name);
 		return -ETIMEDOUT;
 	}
+#else
+	if (test_bit(BTUSB_BOOTING, &data->flags)) {
+		DECLARE_WAITQUEUE(wait, current);
+		signed long timeout;
 
+		BT_INFO("%s: Waiting for firmware download to complete",
+			hdev->name);
+
+		add_wait_queue(&hdev->req_wait_q, &wait);
+		set_current_state(TASK_INTERRUPTIBLE);
+
+		/* The firmware loading should not take longer than 5 seconds
+		 * and thus just timeout if that happens and fail the setup
+		 * of this device.
+		 */
+		timeout = schedule_timeout(msecs_to_jiffies(5000));
+
+		remove_wait_queue(&hdev->req_wait_q, &wait);
+
+		if (signal_pending(current)) {
+			BT_ERR("%s: Device boot interrupted", hdev->name);
+			err = -EINTR;
+			goto done;
+		}
+		if (!timeout) {
+			BT_ERR("%s: Firmware loading timeout", hdev->name);
+			err = -ETIMEDOUT;
+			goto done;
+		}
+	}
+#endif
 	rettime = ktime_get();
 	delta = ktime_sub(rettime, calltime);
 	duration = (unsigned long long) ktime_to_ns(delta) >> 10;
