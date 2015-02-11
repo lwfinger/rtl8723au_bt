@@ -28,6 +28,7 @@
 
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
+#include <linux/version.h>
 
 #define VERSION "0.7"
 
@@ -2724,6 +2725,7 @@ done:
 	return 0;
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 static void btusb_hw_error_intel(struct hci_dev *hdev, u8 code)
 {
 	struct sk_buff *skb;
@@ -2763,6 +2765,7 @@ static void btusb_hw_error_intel(struct hci_dev *hdev, u8 code)
 
 	kfree_skb(skb);
 }
+#endif
 
 static int btusb_set_bdaddr_intel(struct hci_dev *hdev, const bdaddr_t *bdaddr)
 {
@@ -3125,7 +3128,9 @@ static int btusb_probe(struct usb_interface *intf,
 	if (id->driver_info & BTUSB_BCM_PATCHRAM) {
 		hdev->setup = btusb_setup_bcm_patchram;
 		hdev->set_bdaddr = btusb_set_bdaddr_bcm;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 		set_bit(HCI_QUIRK_STRICT_DUPLICATE_FILTER, &hdev->quirks);
+#endif
 	}
 
 	if (id->driver_info & BTUSB_RTL8723A)
@@ -3137,31 +3142,39 @@ static int btusb_probe(struct usb_interface *intf,
 	if (id->driver_info & BTUSB_INTEL) {
 		hdev->setup = btusb_setup_intel;
 		hdev->set_bdaddr = btusb_set_bdaddr_intel;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 		set_bit(HCI_QUIRK_STRICT_DUPLICATE_FILTER, &hdev->quirks);
+#endif
 	}
 
 	if (id->driver_info & BTUSB_INTEL_NEW) {
 		hdev->send = btusb_send_frame_intel;
 		hdev->setup = btusb_setup_intel_new;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 		hdev->hw_error = btusb_hw_error_intel;
-		hdev->set_bdaddr = btusb_set_bdaddr_intel;
 		set_bit(HCI_QUIRK_STRICT_DUPLICATE_FILTER, &hdev->quirks);
+#endif
+		hdev->set_bdaddr = btusb_set_bdaddr_intel;
 	}
 
 	if (id->driver_info & BTUSB_MARVELL)
 		hdev->set_bdaddr = btusb_set_bdaddr_marvell;
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 	if (id->driver_info & BTUSB_SWAVE) {
 		set_bit(HCI_QUIRK_FIXUP_INQUIRY_MODE, &hdev->quirks);
 		set_bit(HCI_QUIRK_BROKEN_LOCAL_COMMANDS, &hdev->quirks);
 	}
+#endif
 
 	if (id->driver_info & BTUSB_INTEL_BOOT)
 		set_bit(HCI_QUIRK_RAW_DEVICE, &hdev->quirks);
 
 	if (id->driver_info & BTUSB_ATH3012) {
 		hdev->set_bdaddr = btusb_set_bdaddr_ath3012;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 		set_bit(HCI_QUIRK_STRICT_DUPLICATE_FILTER, &hdev->quirks);
+#endif
 	}
 
 	if (id->driver_info & BTUSB_AMP) {
