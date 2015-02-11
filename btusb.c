@@ -2288,10 +2288,17 @@ static int btusb_recv_event_intel(struct hci_dev *hdev, struct sk_buff *skb)
 		 */
 		if (skb->len == 9 && hdr->evt == 0xff && hdr->plen == 0x07 &&
 		    skb->data[2] == 0x02) {
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 0))
 			if (test_and_clear_bit(BTUSB_BOOTING, &data->flags)) {
 				smp_mb__after_atomic();
 				wake_up_bit(&data->flags, BTUSB_BOOTING);
 			}
+#else
+			if (test_and_clear_bit(BTUSB_BOOTING,
+					       &data->flags) &&
+			    test_bit(BTUSB_FIRMWARE_LOADED, &data->flags))
+				wake_up_interruptible(&hdev->req_wait_q);
+#endif
 		}
 	}
 
