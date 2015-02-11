@@ -1387,8 +1387,10 @@ static int btusb_setup_csr(struct hci_dev *hdev)
 			/* These fake CSR controllers have all a broken
 			 * stored link key handling and so just disable it.
 			 */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0))
 			set_bit(HCI_QUIRK_BROKEN_STORED_LINK_KEY,
 				&hdev->quirks);
+#endif
 		}
 	}
 
