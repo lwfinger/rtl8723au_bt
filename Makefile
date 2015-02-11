@@ -1,4 +1,4 @@
-FW_DIR	:= /lib/firmware/
+FW_DIR	:= /lib/firmware/rtl_bt/
 MDL_DIR	:= /lib/modules/$(shell uname -r)
 DRV_DIR	:= $(MDL_DIR)/kernel/drivers/bluetooth
 
@@ -20,10 +20,7 @@ endif
 
 install:
 	@mkdir -p $(FW_DIR)
-	@cp -f rtl8723a_fw $(FW_DIR)/.
-	@cp -f rtl8723b_fw $(FW_DIR)/.
-	@cp -f rtl8821a_fw $(FW_DIR)/.
-	@cp -f rtl8761a_fw $(FW_DIR)/.
+	@cp -f *_fw.bin $(FW_DIR)/.
 	@cp -f btusb.ko $(DRV_DIR)/btusb.ko
 	depmod -a $(MDL_DIR)
 	@echo "installed revised btusb"
