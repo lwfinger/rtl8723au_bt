@@ -1996,7 +1996,9 @@ static int btusb_check_bdaddr_intel(struct hci_dev *hdev)
 	if (!bacmp(&rp->bdaddr, BDADDR_INTEL)) {
 		BT_ERR("%s found Intel default device address (%pMR)",
 		       hdev->name, &rp->bdaddr);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 		set_bit(HCI_QUIRK_INVALID_BDADDR, &hdev->quirks);
+#endif
 	}
 
 	kfree_skb(skb);
@@ -2557,7 +2559,9 @@ static int btusb_setup_intel_new(struct hci_dev *hdev)
 	 */
 	if (!bacmp(&params->otp_bdaddr, BDADDR_ANY)) {
 		BT_INFO("%s: No device address configured", hdev->name);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 		set_bit(HCI_QUIRK_INVALID_BDADDR, &hdev->quirks);
+#endif
 	}
 
 	/* With this Intel bootloader only the hardware variant and device
@@ -2839,6 +2843,7 @@ static void btusb_hw_error_intel(struct hci_dev *hdev, u8 code)
 }
 #endif
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 static int btusb_set_bdaddr_intel(struct hci_dev *hdev, const bdaddr_t *bdaddr)
 {
 	struct sk_buff *skb;
@@ -2878,6 +2883,7 @@ static int btusb_set_bdaddr_marvell(struct hci_dev *hdev,
 
 	return 0;
 }
+#endif
 
 #define BDADDR_BCM20702A0 (&(bdaddr_t) {{0x00, 0xa0, 0x02, 0x70, 0x20, 0x00}})
 
@@ -3028,7 +3034,9 @@ reset_fw:
 	if (!bacmp(&bda->bdaddr, BDADDR_BCM20702A0)) {
 		BT_INFO("%s: BCM: using default device address (%pMR)",
 			hdev->name, &bda->bdaddr);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 		set_bit(HCI_QUIRK_INVALID_BDADDR, &hdev->quirks);
+#endif
 	}
 
 	kfree_skb(skb);
@@ -3039,6 +3047,7 @@ done:
 	return ret;
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 static int btusb_set_bdaddr_bcm(struct hci_dev *hdev, const bdaddr_t *bdaddr)
 {
 	struct sk_buff *skb;
@@ -3080,6 +3089,7 @@ static int btusb_set_bdaddr_ath3012(struct hci_dev *hdev,
 
 	return 0;
 }
+#endif
 
 static int btusb_probe(struct usb_interface *intf,
 		       const struct usb_device_id *id)
@@ -3199,7 +3209,9 @@ static int btusb_probe(struct usb_interface *intf,
 
 	if (id->driver_info & BTUSB_BCM_PATCHRAM) {
 		hdev->setup = btusb_setup_bcm_patchram;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 		hdev->set_bdaddr = btusb_set_bdaddr_bcm;
+#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 		set_bit(HCI_QUIRK_STRICT_DUPLICATE_FILTER, &hdev->quirks);
 #endif
@@ -3213,7 +3225,9 @@ static int btusb_probe(struct usb_interface *intf,
 
 	if (id->driver_info & BTUSB_INTEL) {
 		hdev->setup = btusb_setup_intel;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 		hdev->set_bdaddr = btusb_set_bdaddr_intel;
+#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 		set_bit(HCI_QUIRK_STRICT_DUPLICATE_FILTER, &hdev->quirks);
 #endif
@@ -3226,11 +3240,15 @@ static int btusb_probe(struct usb_interface *intf,
 		hdev->hw_error = btusb_hw_error_intel;
 		set_bit(HCI_QUIRK_STRICT_DUPLICATE_FILTER, &hdev->quirks);
 #endif
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 		hdev->set_bdaddr = btusb_set_bdaddr_intel;
+#endif
 	}
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 	if (id->driver_info & BTUSB_MARVELL)
 		hdev->set_bdaddr = btusb_set_bdaddr_marvell;
+#endif
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 	if (id->driver_info & BTUSB_SWAVE) {
@@ -3242,12 +3260,14 @@ static int btusb_probe(struct usb_interface *intf,
 	if (id->driver_info & BTUSB_INTEL_BOOT)
 		set_bit(HCI_QUIRK_RAW_DEVICE, &hdev->quirks);
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
 	if (id->driver_info & BTUSB_ATH3012) {
 		hdev->set_bdaddr = btusb_set_bdaddr_ath3012;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
 		set_bit(HCI_QUIRK_STRICT_DUPLICATE_FILTER, &hdev->quirks);
 #endif
 	}
+#endif
 
 	if (id->driver_info & BTUSB_AMP) {
 		/* AMP controllers do not support SCO packets */
