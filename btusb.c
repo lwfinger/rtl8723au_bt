@@ -1431,6 +1431,7 @@ static const uint8_t RTL_EPATCH_SIGNATURE[] = {
 #define RTL_ROM_LMP_3499	0x3499
 #define RTL_ROM_LMP_8723A	0x1200
 #define RTL_ROM_LMP_8723B	0x8723
+#define RTL_ROM_LMP_8723B2	0x4ce1
 #define RTL_ROM_LMP_8821A	0x8821
 #define RTL_ROM_LMP_8761A	0x8761
 
@@ -1483,6 +1484,7 @@ static int rtl8723b_parse_firmware(struct hci_dev *hdev, u16 lmp_subver,
 	const uint16_t project_id_to_lmp_subver[] = {
 		RTL_ROM_LMP_8723A,
 		RTL_ROM_LMP_8723B,
+		RTL_ROM_LMP_8723B2,
 		RTL_ROM_LMP_8821A,
 		RTL_ROM_LMP_8761A
 	};
@@ -1739,6 +1741,7 @@ static int btusb_setup_rtl8723b(struct hci_dev *hdev)
 
 	switch (lmp_subver) {
 	case RTL_ROM_LMP_8723B:
+	case RTL_ROM_LMP_8723B2:
 		fw_name = "rtl_bt/rtl8723b_fw.bin";
 		break;
 	case RTL_ROM_LMP_8821A:
