@@ -306,6 +306,7 @@ static const struct usb_device_id blacklist_table[] = {
 	{ USB_DEVICE(0x0bda, 0xb003), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0bda, 0xb004), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0bda, 0xb005), .driver_info = BTUSB_RTL8723B },
+	{ USB_DEVICE(0x0bda, 0xb720), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0bda, 0xb723), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0bda, 0xb728), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0bda, 0xb72b), .driver_info = BTUSB_RTL8723B },
