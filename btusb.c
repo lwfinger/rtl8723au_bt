@@ -301,6 +301,7 @@ static const struct usb_device_id blacklist_table[] = {
 	/* Realtek 8723BE Bluetooth devices */
 	{ USB_DEVICE(0x0489, 0xe085), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0489, 0xe08b), .driver_info = BTUSB_RTL8723B },
+	{ USB_DEVICE(0x0930, 0x0222), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0bda, 0xb001), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0bda, 0xb002), .driver_info = BTUSB_RTL8723B },
 	{ USB_DEVICE(0x0bda, 0xb003), .driver_info = BTUSB_RTL8723B },
