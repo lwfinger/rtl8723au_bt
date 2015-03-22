@@ -1762,6 +1762,7 @@ static int btusb_setup_rtl8723b(struct hci_dev *hdev)
 		return ret;
 	}
 
+	pr_info("btusb: Loaded firmware %s\n", fw_name);
 	ret = rtl8723b_parse_firmware(hdev, lmp_subver, fw, &fw_data);
 	if (ret < 0)
 		goto out;
