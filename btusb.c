@@ -352,6 +352,7 @@ static const struct usb_device_id blacklist_table[] = {
 #define BTUSB_FIRMWARE_LOADED	7
 #define BTUSB_FIRMWARE_FAILED	8
 #define BTUSB_BOOTING		9
+#define BTUSB_RESET_RESUME	10
 
 struct btusb_data {
 	struct hci_dev       *hdev;
@@ -3231,12 +3232,19 @@ static int btusb_probe(struct usb_interface *intf,
 #endif
 	}
 
-	if (id->driver_info & BTUSB_RTL8723A)
+	if (id->driver_info & BTUSB_RTL8723A) {
 		hdev->setup = btusb_setup_rtl8723a;
 
-	if (id->driver_info & BTUSB_RTL8723B)
+		/* Realtek devices lose their updated firmware over suspend,
+		 * but the USB hub doesn't notice any status change.
+		 * Explicitly request a device reset on resume.
+		 */
+		set_bit(BTUSB_RESET_RESUME, &data->flags);
+	}
+	if (id->driver_info & BTUSB_RTL8723B) {
 		hdev->setup = btusb_setup_rtl8723b;
-
+		set_bit(BTUSB_RESET_RESUME, &data->flags);
+	}
 	if (id->driver_info & BTUSB_INTEL) {
 		hdev->setup = btusb_setup_intel;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0))
@@ -3410,6 +3418,14 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
 
 	btusb_stop_traffic(data);
 	usb_kill_anchored_urbs(&data->tx_anchor);
+
+	/* Optionally request a device reset on resume, but only when
+	 * wakeups are disabled. If wakeups are enabled we assume the
+	 * device will stay powered up throughout suspend.
+	 */
+	if (test_bit(BTUSB_RESET_RESUME, &data->flags) &&
+	    !device_may_wakeup(&data->udev->dev))
+		data->udev->reset_resume = 1;
 
 	return 0;
 }
