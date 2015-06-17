@@ -4,10 +4,10 @@ MDL_DIR	:= /lib/modules/$(shell uname -r)
 DRV_DIR	:= $(MDL_DIR)/kernel/drivers/bluetooth
 
 #Handle the compression option for modules in 3.18+
-ifneq ("","$(wildcard $(MODDESTDIR)/*.ko.gz)")
+ifneq ("","$(wildcard $(DRV_DIR)/*.ko.gz)")
 COMPRESS_GZIP := y
 endif
-ifneq ("","$(wildcard $(MODDESTDIR)/*.ko.xz)")
+ifneq ("","$(wildcard $(DRV_DIR)/*.ko.xz)")
 COMPRESS_XZ := y
 endif
 
