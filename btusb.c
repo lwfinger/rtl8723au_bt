@@ -2816,7 +2816,7 @@ done:
 	return 0;
 }
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 19, 0))
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(3, 20, 0))
 static void btusb_hw_error_intel(struct hci_dev *hdev, u8 code)
 {
 	struct sk_buff *skb;
