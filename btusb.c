@@ -1546,8 +1546,8 @@ static int rtl8723b_parse_firmware(struct hci_dev *hdev, u16 lmp_subver,
 	}
 
 	if (lmp_subver != project_id_to_lmp_subver[project_id]) {
-		BT_ERR("firmware is for %x but this is a %x",
-		       project_id_to_lmp_subver[project_id], lmp_subver);
+		BT_ERR("firmware is for %x but this is a %x, project_id is %d",
+		       project_id_to_lmp_subver[project_id], lmp_subver, project_id);
 		return -EINVAL;
 	}
 
