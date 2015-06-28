@@ -60,6 +60,7 @@ static struct usb_driver btusb_driver;
 static const struct usb_device_id btusb_table[] = {
 	/* Generic Bluetooth USB device */
 	{ USB_DEVICE_INFO(0xe0, 0x01, 0x01) },
+	{ USB_INTERFACE_INFO(0xe0, 0x01, 0x01) },
 
 	/* Generic Bluetooth AMP device */
 	{ USB_DEVICE_INFO(0xe0, 0x01, 0x04), .driver_info = BTUSB_AMP },
