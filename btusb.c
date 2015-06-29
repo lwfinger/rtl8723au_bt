@@ -1487,9 +1487,9 @@ static int rtl8723b_parse_firmware(struct hci_dev *hdev, u16 lmp_subver,
 	const uint16_t project_id_to_lmp_subver[] = {
 		RTL_ROM_LMP_8723A,
 		RTL_ROM_LMP_8723B,
-		RTL_ROM_LMP_8723B2,
 		RTL_ROM_LMP_8821A,
 		RTL_ROM_LMP_8761A
+		RTL_ROM_LMP_8723B2,
 	};
 
 	rom_version = rtl_read_rom_version(hdev);
@@ -1517,7 +1517,7 @@ static int rtl8723b_parse_firmware(struct hci_dev *hdev, u16 lmp_subver,
 		opcode = *--fwptr;
 		length = *--fwptr;
 		data = *--fwptr;
-		BT_DBG("check op=%x len=%x data=%x", opcode, length, data);
+		pr_info("check op=%x len=%x data=%x", opcode, length, data);
 
 		if (opcode == 0xff) /* EOF */
 			break;
