@@ -1488,7 +1488,7 @@ static int rtl8723b_parse_firmware(struct hci_dev *hdev, u16 lmp_subver,
 		RTL_ROM_LMP_8723A,
 		RTL_ROM_LMP_8723B,
 		RTL_ROM_LMP_8821A,
-		RTL_ROM_LMP_8761A
+		RTL_ROM_LMP_8761A,
 		RTL_ROM_LMP_8723B2,
 	};
 
