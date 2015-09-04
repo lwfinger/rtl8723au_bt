@@ -1517,7 +1517,7 @@ static int rtl8723b_parse_firmware(struct hci_dev *hdev, u16 lmp_subver,
 		opcode = *--fwptr;
 		length = *--fwptr;
 		data = *--fwptr;
-		pr_info("check op=%x len=%x data=%x", opcode, length, data);
+		BT_DBG("check op=%x len=%x data=%x", opcode, length, data);
 
 		if (opcode == 0xff) /* EOF */
 			break;
