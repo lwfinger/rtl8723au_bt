@@ -37,6 +37,10 @@
 
 #define VERSION "0.8"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
+#error "This branch is only for kernels older than 4.1.0. For newer kernels use the troy branch of this repo."
+#endif
+
 static struct usb_driver btusb_driver;
 #if 1
 #define RTKBT_DBG(fmt, arg...) printk(KERN_INFO "rtk_btusb: " fmt "\n" , ## arg)
