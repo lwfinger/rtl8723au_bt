@@ -38,7 +38,7 @@
 #define VERSION "0.8"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
-#error "This branch is only for kernels older than 4.1.0. For newer kernels use the troy branch of this repo."
+#error "This repo is only for kernels older than 4.1.0. For kernel 4.2, use the btusb driver that is built in."
 #endif
 
 static struct usb_driver btusb_driver;
