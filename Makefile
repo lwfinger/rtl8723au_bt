@@ -13,7 +13,7 @@ endif
 
 ifneq ($(KERNELRELEASE),)
 
-	obj-m := btusb.o
+	obj-m := btusb.o btrtl.o btintel.o btbcm.o
 
 else
 	PWD := $(shell pwd)
@@ -30,12 +30,18 @@ endif
 install:
 	@mkdir -p $(FW_DIR)
 	@cp -f *_fw.bin $(FW_DIR)/.
-	@cp -f btusb.ko $(DRV_DIR)/btusb.ko
+	@cp -f *.ko $(DRV_DIR)/.
 ifeq ($(COMPRESS_GZIP), y)
 	@gzip -f $(DRV_DIR)/btusb.ko
+	@gzip -f $(DRV_DIR)/btbcm.ko
+	@gzip -f $(DRV_DIR)/btintel.ko
+	@gzip -f $(DRV_DIR)/btrtl.ko
 endif
 ifeq ($(COMPRESS_XZ), y)
 	@xz -f $(DRV_DIR)/btusb.ko
+	@xz -f $(DRV_DIR)/btbcm.ko
+	@xz -f $(DRV_DIR)/btintel.ko
+	@xz -f $(DRV_DIR)/btrtl.ko
 endif
 	depmod -a $(MDL_DIR)
 	@echo "installed revised btusb"
