@@ -25,7 +25,6 @@
 #include <linux/usb.h>
 #include <linux/firmware.h>
 #include <asm/unaligned.h>
-#include <linux/version.h>
 
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
@@ -33,10 +32,6 @@
 #include "btintel.h"
 #include "btbcm.h"
 #include "btrtl.h"
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 1, 0)
-.error "This branch is only for kernels 4.1 and newer. Use the master or troy branch instead."
-#endif
 
 #define VERSION "0.8"
 

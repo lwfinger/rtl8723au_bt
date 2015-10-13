@@ -38,4 +38,15 @@ struct rtl_epatch_header {
 	__le16 num_patches;
 } __packed;
 
+#if IS_ENABLED(CONFIG_BT_RTL)
+
 int btrtl_setup_realtek(struct hci_dev *hdev);
+
+#else
+
+static inline int btrtl_setup_realtek(struct hci_dev *hdev)
+{
+	return -EOPNOTSUPP;
+}
+
+#endif
