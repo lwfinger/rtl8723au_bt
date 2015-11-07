@@ -152,6 +152,10 @@ static const struct usb_device_id btusb_table[] = {
 	{ USB_DEVICE(0x8087, 0x0a5a),
 	  .driver_info = BTUSB_INTEL_BOOT | BTUSB_BROKEN_ISOC },
 
+	/* Realtek Bluetooth devices */
+	{ USB_VENDOR_AND_INTERFACE_INFO(0x0bda, 0xe0, 0x01, 0x01),
+	  .driver_info = BTUSB_REALTEK },
+
 	{ }	/* Terminating entry */
 };
 
