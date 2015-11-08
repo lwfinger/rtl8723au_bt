@@ -2,6 +2,7 @@ SHELL := /bin/sh
 FW_DIR	:= /lib/firmware/rtl_bt/
 MDL_DIR	:= /lib/modules/$(shell uname -r)
 DRV_DIR	:= $(MDL_DIR)/kernel/drivers/bluetooth
+EXTRA_CFLAGS += -DCONFIG_BT_RTL
 
 #Handle the compression option for modules in 3.18+
 ifneq ("","$(wildcard $(DRV_DIR)/*.ko.gz)")
