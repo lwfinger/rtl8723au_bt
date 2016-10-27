@@ -2741,7 +2741,7 @@ static int btusb_probe(struct usb_interface *intf,
 		hdev->set_bdaddr = btusb_set_bdaddr_ath3012;
 	}
 
-#ifdef CONFIG_BT_HCIBTUSB_RTL
+#ifdef CONFIG_BT_RTL
 	if (id->driver_info & BTUSB_REALTEK) {
 		hdev->setup = btrtl_setup_realtek;
 
