@@ -35,6 +35,10 @@
 
 #define VERSION "0.8"
 
+#ifndef HCI_BREDR
+#define HCI_BREDR HCI_PRIMARY
+#endif
+
 static bool disable_scofix;
 static bool force_scofix;
 
